@@ -1,0 +1,32 @@
+[project]
+name = "odk"
+version = "1.0.0"
+description = "Image processing and analysis SDK"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>2",
+    "scipy",
+    "shapely",
+    "orjson",
+]
+
+[tool.setuptools]
+packages = ["odk"]
+
+[project.optional-dependencies]
+opencv-python = [
+    "opencv-python>3.9.0.80",
+]
+onnxruntime-gpu = [
+    "onnxruntime-gpu>1.19.0",
+]
+
+[tool.black]
+line-length = 88
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+combine_star = true
