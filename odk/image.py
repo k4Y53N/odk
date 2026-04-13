@@ -369,3 +369,20 @@ class Image:
             color=color,
             thickness=thickness,
         )
+
+    def draw_bboxes(
+        self,
+        bboxes: NDArray[np.int_] | NDArray[np.float32],
+        color: tuple[int, int, int],
+        thickness=2,
+    ):
+        """Draw multiple bounding box rectangles on the image.
+
+        Args:
+            bboxes (NDArray[np.int_] | NDArray[np.float32]): Array of shape ``(N, 4)``
+                where each row is ``[left, top, right, bottom]``.
+            color (tuple[int, int, int]): BGR color of the rectangle outlines.
+            thickness (int, optional): Line thickness in pixels. Defaults to 2.
+        """
+        for bbox in bboxes:
+            self.draw_bbox(*bbox, color=color, thickness=thickness)
