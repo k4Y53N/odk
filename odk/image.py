@@ -144,6 +144,33 @@ class Image:
         """
         self.data = cv2.resize(self.data, (width, height), interpolation=interpolation)
 
+    def crop(
+        self,
+        left: float,
+        top: float,
+        right: float,
+        bottom: float,
+    ) -> NDArray[np.uint8]:
+        """Crop a rectangular region from the image.
+
+        Coordinates are clamped to the image bounds. The slice uses exclusive *right*
+        and *bottom* (standard NumPy slicing).
+
+        Args:
+            left (float): X-coordinate of the left edge, in pixels.
+            top (float): Y-coordinate of the top edge, in pixels.
+            right (float): X-coordinate of the right edge (exclusive), in pixels.
+            bottom (float): Y-coordinate of the bottom edge (exclusive), in pixels.
+
+        Returns:
+            NDArray[np.uint8]: The cropped image region as a NumPy array view.
+        """
+        left, top, right, bottom = np.round([left, top, right, bottom]).astype(np.int32)
+        left, right = np.clip([left, right], 0, self.width)
+        top, bottom = np.clip([top, bottom], 0, self.height)
+
+        return self.data[top:bottom, left:right]
+
     def encode(
         self,
         extension: EXTENSION = '.jpg',
