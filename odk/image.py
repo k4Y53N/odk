@@ -412,3 +412,36 @@ class Image:
             isClosed=is_closed,
             thickness=thickness,
         )
+
+    def draw_polygon(
+        self,
+        points: NDArray[np.int_] | NDArray[np.float32],
+        color: tuple[int, int, int],
+        alpha: float = 1,
+    ):
+        """Draw a filled polygon on the image.
+
+        When *alpha* is ``1`` the polygon is drawn opaquely. Values between ``0`` and
+        ``1`` blend the polygon with the existing image. An *alpha* of ``0`` is a
+        no-op.
+
+        Args:
+            points (NDArray[np.int_] | NDArray[np.float32]): Array of shape ``(N, 2)``
+                containing ``(x, y)`` vertex coordinates.
+            color (tuple[int, int, int]): BGR fill color.
+            alpha (float, optional): Opacity in the range [0, 1]. Defaults to 1.
+        """
+        alpha = np.clip(alpha, 0, 1)
+
+        if not alpha:
+            return
+
+        points = np.asarray(points).round().astype(np.int32)
+
+        if alpha == 1:
+            cv2.fillPoly(self.data, pts=[points], color=color)
+            return
+
+        overlay = self.data.copy()
+        cv2.fillPoly(overlay, pts=[points], color=color)
+        cv2.addWeighted(overlay, alpha, self.data, 1 - alpha, 0, dst=self.data)
