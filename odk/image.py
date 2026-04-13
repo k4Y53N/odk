@@ -6,7 +6,7 @@ from typing import Iterable, Literal
 
 import cv2
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 
 __all__ = [
     'Image',
@@ -372,7 +372,7 @@ class Image:
 
     def draw_bboxes(
         self,
-        bboxes: ArrayLike[np.int_] | ArrayLike[np.float32],
+        bboxes: NDArray[np.int_] | NDArray[np.float32],
         color: tuple[int, int, int],
         thickness=2,
     ):
@@ -389,7 +389,7 @@ class Image:
 
     def draw_line(
         self,
-        points: ArrayLike[np.int_] | ArrayLike[np.float32],
+        points: NDArray[np.int_] | NDArray[np.float32],
         color: tuple[int, int, int],
         is_closed: bool = False,
         thickness: int = 2,
