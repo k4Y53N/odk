@@ -6,7 +6,7 @@ from typing import Iterable, Literal
 
 import cv2
 import numpy as np
-from numpy.typing import NDArray, ArrayLike
+from numpy.typing import ArrayLike, NDArray
 
 __all__ = [
     'Image',
@@ -386,3 +386,29 @@ class Image:
         """
         for bbox in bboxes:
             self.draw_bbox(*bbox, color=color, thickness=thickness)
+
+    def draw_line(
+        self,
+        points: ArrayLike[np.int_] | ArrayLike[np.float32],
+        color: tuple[int, int, int],
+        is_closed: bool = False,
+        thickness: int = 2,
+    ):
+        """Draw a polyline through the given points on the image.
+
+        Args:
+            points (ArrayLike[np.int_] | ArrayLike[np.float32]): Array of shape
+                ``(N, 2)`` containing ``(x, y)`` vertex coordinates.
+            color (tuple[int, int, int]): BGR color of the line.
+            is_closed (bool, optional): If ``True``, connect the last point back to the
+                first. Defaults to False.
+            thickness (int, optional): Line thickness in pixels. Defaults to 2.
+        """
+        points = np.asarray(points).round().astype(np.int32)
+        cv2.polylines(
+            self.data,
+            pts=points,
+            color=color,
+            isClosed=is_closed,
+            thickness=thickness,
+        )
