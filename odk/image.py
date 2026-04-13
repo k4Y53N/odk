@@ -472,3 +472,31 @@ class Image:
         overlay = self.data.copy()
         cv2.fillPoly(overlay, pts=[points], color=color)
         cv2.addWeighted(overlay, alpha, self.data, 1 - alpha, 0, dst=self.data)
+
+    def draw_points(
+        self,
+        points: NDArray[np.int_] | NDArray[np.float32],
+        color: tuple[int, int, int],
+        radius: int = 2,
+        thickness: int = -1,
+    ):
+        """Draw circles at the given points on the image.
+
+        Args:
+            points (NDArray[np.float32]): Array of shape ``(N, 2)`` containing
+                ``(x, y)`` coordinates.
+            color (tuple[int, int, int]): BGR color of the circles.
+            radius (int, optional): Circle radius in pixels. Defaults to 2.
+            thickness (int, optional): Circle outline thickness in pixels. ``-1`` fills
+                the circle. Defaults to -1.
+        """
+        points = np.round(points).astype(np.int32)
+
+        for point in points:
+            cv2.circle(
+                self.data,
+                center=point,
+                radius=radius,
+                color=color,
+                thickness=thickness,
+            )
