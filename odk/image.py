@@ -341,3 +341,31 @@ class Image:
             top = total_height
 
         return anchor_x, top
+
+    def draw_bbox(
+        self,
+        left: float,
+        top: float,
+        right: float,
+        bottom: float,
+        color: tuple[int, int, int],
+        thickness: int = 2,
+    ):
+        """Draw a bounding box rectangle on the image.
+
+        Args:
+            left (float): X-coordinate of the left edge, in pixels.
+            top (float): Y-coordinate of the top edge, in pixels.
+            right (float): X-coordinate of the right edge, in pixels.
+            bottom (float): Y-coordinate of the bottom edge, in pixels.
+            color (tuple[int, int, int]): BGR color of the rectangle outline.
+            thickness (int, optional): Line thickness in pixels. Defaults to 2.
+        """
+        left, top, right, bottom = np.round([left, top, right, bottom]).astype(np.int32)
+        cv2.rectangle(
+            self.data,
+            pt1=(left, top),
+            pt2=(right, bottom),
+            color=color,
+            thickness=thickness,
+        )
