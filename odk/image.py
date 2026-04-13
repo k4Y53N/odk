@@ -397,7 +397,7 @@ class Image:
         """Draw a polyline through the given points on the image.
 
         Args:
-            points (ArrayLike[np.int_] | ArrayLike[np.float32]): Array of shape
+            points (NDArray[np.int_] | NDArray[np.float32]): Array of shape
                 ``(N, 2)`` containing ``(x, y)`` vertex coordinates.
             color (tuple[int, int, int]): BGR color of the line.
             is_closed (bool, optional): If ``True``, connect the last point back to the
