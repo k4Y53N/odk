@@ -139,7 +139,8 @@ class Image:
         Args:
             width (int): Target width in pixels.
             height (int): Target height in pixels.
-            interpolation (int, optional): OpenCV interpolation flag. Defaults to cv2.INTER_LINEAR.
+            interpolation (int, optional): OpenCV interpolation flag. Defaults to
+                cv2.INTER_LINEAR.
         """
         self.data = cv2.resize(self.data, (width, height), interpolation=interpolation)
 
@@ -151,8 +152,10 @@ class Image:
         """Encode the image into an OpenCV byte buffer.
 
         Args:
-            extension (EXTENSION, optional): Output format extension including the leading dot. Defaults to '.jpg'.
-            quality (float, optional): Normalized quality value in the range [0, 1]. Defaults to 1.
+            extension (EXTENSION, optional): Output format extension including the
+                leading dot. Defaults to '.jpg'.
+            quality (float, optional): Normalized quality value in the range [0, 1].
+                Defaults to 1.
 
         Raises:
             RuntimeError: If encoding fails.
@@ -176,8 +179,10 @@ class Image:
         """Encode the image and return the result as Python ``bytes``.
 
         Args:
-            extension (EXTENSION, optional): Output format extension including the leading dot. Defaults to '.jpg'.
-            quality (float, optional): Normalized quality value in the range [0, 1]. Defaults to 1.
+            extension (EXTENSION, optional): Output format extension including the
+                leading dot. Defaults to '.jpg'.
+            quality (float, optional): Normalized quality value in the range [0, 1].
+                Defaults to 1.
 
         Returns:
             bytes: The encoded image data.
@@ -189,8 +194,10 @@ class Image:
         """Save the image to a file on disk.
 
         Args:
-            path (str | PathLike): Destination file path. The format is inferred from the file extension.
-            quality (float, optional): Normalized quality value in the range [0, 1]. Defaults to 1.
+            path (str | PathLike): Destination file path. The format is inferred from
+                the file extension.
+            quality (float, optional): Normalized quality value in the range [0, 1].
+                Defaults to 1.
 
         Raises:
             OSError: If the image could not be written to *path*.
@@ -206,11 +213,14 @@ class Image:
         """Display the image in an OpenCV window and wait for a key press.
 
         Args:
-            delay (int, optional): Milliseconds to wait for a key press. 0 waits indefinitely. Defaults to 0.
-            window_name (str, optional): Title of the display window. Defaults to 'image'.
+            delay (int, optional): Milliseconds to wait for a key press. 0 waits
+                indefinitely. Defaults to 0.
+            window_name (str, optional): Title of the display window. Defaults to
+                'image'.
 
         Returns:
-            int: The code of the key pressed, or -1 if no key was pressed before the timeout.
+            int: The code of the key pressed, or -1 if no key was pressed before the
+                timeout.
         """
         cv2.imshow(window_name, self.data)
         return cv2.waitKey(delay=delay)
@@ -221,15 +231,20 @@ class Image:
         interrupt_keys: Iterable[str] = 'qQ',
         window_name: str | None = None,
     ):
-        """Display the image and raise ``KeyboardInterrupt`` if an interrupt key is pressed.
+        """Display the image and raise ``KeyboardInterrupt`` if an interrupt key is
+        pressed.
 
         Args:
-            delay (int, optional): Milliseconds to wait for a key press. 0 waits indefinitely. Defaults to 0.
-            interrupt_keys (Iterable[str], optional): Characters that trigger an interrupt. Defaults to 'qQ'.
-            window_name (str | None, optional): Title of the display window. Auto-generated from *interrupt_keys* when ``None``. Defaults to None.
+            delay (int, optional): Milliseconds to wait for a key press. 0 waits
+                indefinitely. Defaults to 0.
+            interrupt_keys (Iterable[str], optional): Characters that trigger an
+                interrupt. Defaults to 'qQ'.
+            window_name (str | None, optional): Title of the display window.
+                Auto-generated from *interrupt_keys* when ``None``. Defaults to None.
 
         Raises:
-            KeyboardInterrupt: If the pressed key is in *interrupt_keys* (or any key when *interrupt_keys* is empty).
+            KeyboardInterrupt: If the pressed key is in *interrupt_keys* (or any key
+                when *interrupt_keys* is empty).
 
         Returns:
             int: The key code if it was not an interrupt key.
@@ -259,35 +274,31 @@ class Image:
     ) -> tuple[int, int]:
         """Draw multi-line text onto the image.
 
-        Renders *text* at the given pixel position, splitting on newline
-        characters so each line is drawn below the previous one.  When
-        *background* is enabled, a filled rectangle using the inverted
-        *color* is drawn behind each line for contrast.
+        Renders *text* at the given pixel position, splitting on newline characters so
+        each line is drawn below the previous one.  When *background* is enabled, a
+        filled rectangle using the inverted *color* is drawn behind each line for
+        contrast.
 
         Args:
-            text (str): The text string to render. Newline characters
-                split the text into multiple lines.
-            left (float): X-coordinate of the left edge of the text,
-                in pixels.
-            top (float): Y-coordinate of the top edge of the first
-                line, in pixels.
-            color (tuple[int, int, int]): BGR text color. When
-                *background* is ``True`` this becomes the background
-                color and the text is drawn in the inverted color.
+            text (str): The text string to render. Newline characters split the text
+                into multiple lines.
+            left (float): X-coordinate of the left edge of the text, in pixels.
+            top (float): Y-coordinate of the top edge of the first line, in pixels.
+            color (tuple[int, int, int]): BGR text color. When *background* is ``True``
+                this becomes the background color and the text is drawn in the inverted
+                color.
             font_scale (int, optional): Font size multiplier. Defaults to 1.
-            thickness (int, optional): Thickness of the text strokes
-                in pixels. Defaults to 1.
-            font_face (int, optional): OpenCV font identifier.
-                Defaults to cv2.FONT_HERSHEY_DUPLEX.
-            background (bool, optional): If ``True``, draw a filled
-                rectangle behind each line using the inverted *color*.
-                Defaults to False.
+            thickness (int, optional): Thickness of the text strokes in pixels.
+                Defaults to 1.
+            font_face (int, optional): OpenCV font identifier. Defaults to
+                cv2.FONT_HERSHEY_DUPLEX.
+            background (bool, optional): If ``True``, draw a filled rectangle behind
+                each line using the inverted *color*. Defaults to False.
 
         Returns:
-            tuple[int, int]: The ``(x, y)`` pixel coordinates of the
-                bottom-right anchor after the last rendered line.
+            tuple[int, int]: The ``(x, y)`` pixel coordinates of the bottom-right
+                anchor after the last rendered line.
         """
-
         left, top = round(left), round(top)
         lines = text.split('\n')
         background_color = (255 - color[0], 255 - color[1], 255 - color[2])
