@@ -404,7 +404,7 @@ class Image:
                 first. Defaults to False.
             thickness (int, optional): Line thickness in pixels. Defaults to 2.
         """
-        points = np.asarray(points).round().astype(np.int32)
+        points = np.round(points).astype(np.int32)
         cv2.polylines(
             self.data,
             pts=[points],
@@ -436,7 +436,7 @@ class Image:
         if not alpha:
             return
 
-        points = np.asarray(points).round().astype(np.int32)
+        points = np.round(points).astype(np.int32)
 
         if alpha == 1:
             cv2.fillPoly(self.data, pts=[points], color=color)
