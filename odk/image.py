@@ -407,7 +407,7 @@ class Image:
         points = np.asarray(points).round().astype(np.int32)
         cv2.polylines(
             self.data,
-            pts=points,
+            pts=[points],
             color=color,
             isClosed=is_closed,
             thickness=thickness,
