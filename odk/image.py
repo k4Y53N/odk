@@ -245,3 +245,88 @@ class Image:
             raise KeyboardInterrupt(f'Interrupt by key {chr(key)}')
 
         return key
+
+    def draw_text(
+        self,
+        text: str,
+        left: float,
+        top: float,
+        color: tuple[int, int, int],
+        font_scale=1,
+        thickness=1,
+        font_face=cv2.FONT_HERSHEY_DUPLEX,
+        background=False,
+    ) -> tuple[int, int]:
+        """Draw multi-line text onto the image.
+
+        Renders *text* at the given pixel position, splitting on newline
+        characters so each line is drawn below the previous one.  When
+        *background* is enabled, a filled rectangle using the inverted
+        *color* is drawn behind each line for contrast.
+
+        Args:
+            text (str): The text string to render. Newline characters
+                split the text into multiple lines.
+            left (float): X-coordinate of the left edge of the text,
+                in pixels.
+            top (float): Y-coordinate of the top edge of the first
+                line, in pixels.
+            color (tuple[int, int, int]): BGR text color. When
+                *background* is ``True`` this becomes the background
+                color and the text is drawn in the inverted color.
+            font_scale (int, optional): Font size multiplier. Defaults to 1.
+            thickness (int, optional): Thickness of the text strokes
+                in pixels. Defaults to 1.
+            font_face (int, optional): OpenCV font identifier.
+                Defaults to cv2.FONT_HERSHEY_DUPLEX.
+            background (bool, optional): If ``True``, draw a filled
+                rectangle behind each line using the inverted *color*.
+                Defaults to False.
+
+        Returns:
+            tuple[int, int]: The ``(x, y)`` pixel coordinates of the
+                bottom-right anchor after the last rendered line.
+        """
+
+        left, top = round(left), round(top)
+        lines = text.split('\n')
+        background_color = (255 - color[0], 255 - color[1], 255 - color[2])
+        anchor_x = left
+        anchor_y = top
+
+        if background:
+            color, background_color = background_color, color
+
+        for line in lines:
+            (text_width, text_height), baseline = cv2.getTextSize(
+                text=line,
+                fontFace=font_face,
+                fontScale=font_scale,
+                thickness=thickness,
+            )
+            total_width = left + text_width
+            total_height = top + text_height + baseline
+            anchor_x = left + text_width
+            anchor_y = top + text_height
+
+            if background:
+                cv2.rectangle(
+                    self.data,
+                    (left, top),
+                    (total_width, total_height),
+                    color=background_color,
+                    thickness=-1,
+                )
+
+            cv2.putText(
+                self.data,
+                text=line,
+                org=(left, anchor_y),
+                fontFace=font_face,
+                fontScale=font_scale,
+                color=color,
+                thickness=thickness,
+            )
+            top = total_height
+
+        return anchor_x, top
