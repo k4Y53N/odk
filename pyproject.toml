@@ -1,6 +1,6 @@
 [project]
 name = "odk"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Object Detection Kit"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -30,6 +30,9 @@ Repository = "https://github.com/k4Y53N/odk"
 
 [tool.setuptools]
 packages = ["odk"]
+
+[tool.setuptools.dynamic]
+version = {attr = "odk.__version__"}
 
 [tool.black]
 line-length = 88
