@@ -14,7 +14,7 @@ class Video:
         """Initialize a Video instance.
 
         Args:
-            sorurce (str): The video source.
+            source (str): The video source.
             api (int): The OpenCV backend API identifier.
         """
         self.__capture = cv2.VideoCapture(sorurce, api)
@@ -89,11 +89,11 @@ class Video:
         return int(self.__capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     @property
-    def fps(self) -> int:
+    def fps(self) -> float:
         """Video FPS.
 
         Returns:
-            int: FPS
+            float: FPS
         """
         return self.__capture.get(cv2.CAP_PROP_FPS)
 
