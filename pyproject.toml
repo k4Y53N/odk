@@ -1,26 +1,32 @@
 [project]
 name = "odk"
-version = "1.0.0"
-description = "Image processing and analysis SDK"
+version = "0.1.0"
+description = "Object Detection Kit"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = [
-    "numpy>2",
-    "scipy",
-    "shapely",
-    "orjson",
+license = "MIT"
+authors = [
+    { name = "k4Y53N" },
 ]
+keywords = ["object-detection", "computer-vision", "opencv"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+dependencies = [
+    "numpy",
+]
+
+[project.urls]
+Repository = "https://github.com/k4Y53N/odk"
 
 [tool.setuptools]
 packages = ["odk"]
-
-[project.optional-dependencies]
-opencv-python = [
-    "opencv-python>3.9.0.80",
-]
-onnxruntime-gpu = [
-    "onnxruntime-gpu>1.19.0",
-]
 
 [tool.black]
 line-length = 88

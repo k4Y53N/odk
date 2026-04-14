@@ -1,4 +1,1 @@
-numpy>2
-scipy
-shapely
-orjson
+numpy
