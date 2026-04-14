@@ -63,10 +63,10 @@ class Video:
 
     @property
     def size(self) -> tuple[int, int]:
-        """Video size [height, width].
+        """Video size ``(height, width)``
 
         Returns:
-            tuple[int, int]: [height, width]
+            tuple[int, int]: ``(height, width)``
         """
         return self.height, self.width
 
@@ -75,7 +75,7 @@ class Video:
         """Video width.
 
         Returns:
-            int: width
+            int: Width.
         """
         return int(self.__capture.get(cv2.CAP_PROP_FRAME_WIDTH))
 
@@ -84,7 +84,7 @@ class Video:
         """Video height.
 
         Returns:
-            int: height
+            int: Height.
         """
         return int(self.__capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
@@ -93,7 +93,7 @@ class Video:
         """Video FPS.
 
         Returns:
-            float: FPS
+            float: FPS.
         """
         return self.__capture.get(cv2.CAP_PROP_FPS)
 
