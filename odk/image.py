@@ -296,7 +296,7 @@ class Image:
         font_scale: float = 1,
         thickness: int = 1,
         font_face=cv2.FONT_HERSHEY_DUPLEX,
-        background=False,
+        background: bool = False,
     ) -> tuple[int, int]:
         """Draw multi-line text onto the image.
 
