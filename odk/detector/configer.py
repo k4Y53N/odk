@@ -11,7 +11,6 @@ __all__ = [
 @dataclass
 class ModelConfiger:
     weight_path: str
-    shape: list[list[int | None]] | None
 
 
 class Version(str, Enum):
@@ -29,4 +28,3 @@ class Version(str, Enum):
 class ObjectDetectConfiger(ModelConfiger):
     version: Version
     class_label: list[str]
-    shape: list[list[int | None]] | None = None
