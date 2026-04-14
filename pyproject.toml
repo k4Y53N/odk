@@ -22,6 +22,9 @@ dependencies = [
     "numpy",
 ]
 
+[project.optional-dependencies]
+opencv = ["opencv-python"]
+
 [project.urls]
 Repository = "https://github.com/k4Y53N/odk"
 
