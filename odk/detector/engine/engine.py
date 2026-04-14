@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from numpy.typing import NDArray, DTypeLike
+
+from numpy.typing import DTypeLike, NDArray
+
 from ..configer import ModelConfiger
 
 
@@ -31,14 +33,14 @@ class Engine(ABC):
 
     @property
     @abstractmethod
-    def input_shapes(self) -> tuple[tuple[int | None, ...], ...]:
+    def input_shapes(self) -> tuple[tuple[int, ...], ...]:
         """The expected shapes of the model inputs.
 
-        Each inner tuple represents the shape of one input, where ``None``
-        indicates a dynamic dimension (e.g. batch size).
+        Each inner tuple represents the shape of one input tensor,
+        where ``-1`` indicates a dynamic dimension.
 
         Returns:
-            tuple[tuple[int | None, ...], ...]: A tuple of shape tuples, one per model input.
+            tuple[tuple[int, ...], ...]: A tuple of shape tuples, one per model input.
         """
 
     @property
