@@ -293,8 +293,8 @@ class Image:
         left: float,
         top: float,
         color: tuple[int, int, int],
-        font_scale=1,
-        thickness=1,
+        font_scale: float = 1,
+        thickness: int = 1,
         font_face=cv2.FONT_HERSHEY_DUPLEX,
         background=False,
     ) -> tuple[int, int]:
@@ -313,7 +313,7 @@ class Image:
             color (tuple[int, int, int]): BGR text color. When *background* is ``True``
                 this becomes the background color and the text is drawn in the inverted
                 color.
-            font_scale (int, optional): Font size multiplier. Defaults to 1.
+            font_scale (float, optional): Font size multiplier. Defaults to 1.
             thickness (int, optional): Thickness of the text strokes in pixels.
                 Defaults to 1.
             font_face (int, optional): OpenCV font identifier. Defaults to
@@ -400,7 +400,7 @@ class Image:
         self,
         bboxes: NDArray[np.int_] | NDArray[np.float32],
         color: tuple[int, int, int],
-        thickness=2,
+        thickness: int = 2,
     ):
         """Draw multiple bounding box rectangles on the image.
 
