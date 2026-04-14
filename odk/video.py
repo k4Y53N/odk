@@ -125,7 +125,8 @@ class Video:
         Returns:
             bool: True if the video capture was successfully opened.
         """
-        return self.__capture.open()
+        self.release()
+        return self.__capture.open(self.source, self.api)
 
     def is_opened(self) -> bool:
         """Check whether the video capture is currently open.
