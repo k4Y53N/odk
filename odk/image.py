@@ -279,11 +279,11 @@ class Image:
         if window_name is None:
             window_name = 'Interrupt by key: ' + ' '.join(interrupt_keys)
 
+        interrupt_keys = tuple(map(ord, interrupt_keys))
         key = self.show(delay=delay, window_name=window_name)
-        chr_key = chr(key)
 
-        if (key != -1 and len(interrupt_keys) == 0) or chr_key in interrupt_keys:
-            raise KeyboardInterrupt(f'Interrupt by key {chr_key}')
+        if (key != -1 and len(interrupt_keys) == 0) or key in interrupt_keys:
+            raise KeyboardInterrupt(f'Interrupt by key {chr(key)}')
 
         return key
 
