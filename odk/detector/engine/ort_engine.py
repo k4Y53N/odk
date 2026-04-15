@@ -7,6 +7,10 @@ from numpy.typing import DTypeLike, NDArray
 from ..configer import ModelConfiger
 from .engine import Engine
 
+__all__ = [
+    'OrtEngine',
+]
+
 DTYPE_MAP: dict[str, DTypeLike] = {
     'tensor(float)': np.float32,
     'tensor(float16)': np.float16,
