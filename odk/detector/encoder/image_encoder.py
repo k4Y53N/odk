@@ -5,6 +5,7 @@ import numpy as np
 from numpy.typing import DTypeLike, NDArray
 
 from ..engine import Engine
+from ..option import ObjectDetectOption
 from .encoder import Encoder
 
 __all__ = [
@@ -12,7 +13,7 @@ __all__ = [
 ]
 
 
-class ImageEncoder(Encoder):
+class ImageEncoder(Encoder[ObjectDetectOption]):
     def __init__(self, height: int, width: int, dtype: DTypeLike):
         self.height: int = height
         self.width: int = width
@@ -29,7 +30,11 @@ class ImageEncoder(Encoder):
 
         return cls(height, width, input_dtype)
 
-    def encode(self, origin_input: Sequence[NDArray[np.uint8]]) -> Sequence[NDArray]:
+    def encode(
+        self,
+        origin_input: Sequence[NDArray[np.uint8]],
+        option: ObjectDetectOption,
+    ) -> Sequence[NDArray]:
         tensor = [
             cv2.resize(image, (self.width, self.height)) for image in origin_input
         ]
