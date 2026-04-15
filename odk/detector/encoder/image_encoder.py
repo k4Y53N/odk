@@ -29,9 +29,9 @@ class ImageEncoder(Encoder):
 
         return cls(height, width, input_dtype)
 
-    def encode(self, original_input: Sequence[NDArray[np.uint8]]) -> Sequence[NDArray]:
+    def encode(self, origin_input: Sequence[NDArray[np.uint8]]) -> Sequence[NDArray]:
         tensor = [
-            cv2.resize(image, (self.width, self.height)) for image in original_input
+            cv2.resize(image, (self.width, self.height)) for image in origin_input
         ]
         tensor = np.stack(tensor)
         tensor = tensor[..., ::-1]  # BGR -> RGB

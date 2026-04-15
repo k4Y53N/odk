@@ -25,11 +25,11 @@ class Encoder(ABC):
         """
 
     @abstractmethod
-    def encode(self, original_input: Sequence[NDArray]) -> Sequence[NDArray]:
+    def encode(self, origin_input: Sequence[NDArray]) -> Sequence[NDArray]:
         """Preprocess raw inputs into tensors suitable for model inference.
 
         Args:
-            original_input (Sequence[NDArray]): A sequence of raw input arrays to be
+            origin_input (Sequence[NDArray]): A sequence of raw input arrays to be
                 encoded.
 
         Returns:
