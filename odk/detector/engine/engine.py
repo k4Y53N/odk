@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Sequence
 
 from numpy.typing import DTypeLike, NDArray
 
@@ -20,37 +21,37 @@ class Engine(ABC):
         """
 
     @abstractmethod
-    def infer(self, input_tensors: tuple[NDArray, ...]) -> tuple[NDArray, ...]:
+    def infer(self, input_tensors: Sequence[NDArray]) -> Sequence[NDArray]:
         """Run inference on the loaded model with the given input arrays.
 
         Args:
-            input_tensors (tuple[NDArray, ...]): A tuple of NumPy arrays, one per model
-                input, matching the expected input shapes and dtypes.
+            input_tensors (Sequence[NDArray]): A sequence of NumPy arrays, one per
+                model input, matching the expected input shapes and dtypes.
 
         Returns:
-            tuple[NDArray, ...]: A tuple of NumPy arrays containing the model outputs.
+            Sequence[NDArray]: A sequence of NumPy arrays containing the model outputs.
         """
 
     @property
     @abstractmethod
-    def input_shapes(self) -> tuple[tuple[int, ...], ...]:
+    def input_shapes(self) -> Sequence[Sequence[int]]:
         """The expected shapes of the model inputs.
 
-        Each inner tuple represents the shape of one input tensor,
-        where ``-1`` indicates a dynamic dimension.
+        Each inner sequence represents the shape of one input tensor, where ``-1``
+        indicates a dynamic dimension.
 
         Returns:
-            tuple[tuple[int, ...], ...]: A tuple of shape tuples, one per model input.
+            Sequence[Sequence[int]]: A sequence of shape tuples, one per model input.
         """
 
     @property
     @abstractmethod
-    def input_dtypes(self) -> tuple[DTypeLike, ...]:
+    def input_dtypes(self) -> Sequence[DTypeLike]:
         """The expected data types of the model inputs.
 
         Each element corresponds to the NumPy dtype required for the respective input
         array (e.g. ``np.float32``).
 
         Returns:
-            tuple[DTypeLike, ...]: A tuple of dtypes, one per model input.
+            Sequence[DTypeLike]: A sequence of dtypes, one per model input.
         """
