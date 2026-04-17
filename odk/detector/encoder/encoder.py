@@ -14,7 +14,7 @@ __all__ = [
 class Encoder(ABC, Generic[OptionT]):
     @classmethod
     @abstractmethod
-    def load(cls, engine: Engine) -> 'Encoder[OptionT]':
+    def from_engine(cls, engine: Engine) -> 'Encoder[OptionT]':
         """Create an Encoder from the given inference engine.
 
         Args:

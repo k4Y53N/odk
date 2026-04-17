@@ -13,7 +13,7 @@ __all__ = [
 class Engine(ABC):
     @classmethod
     @abstractmethod
-    def load(cls, configer: ModelConfiger) -> 'Engine':
+    def from_configer(cls, configer: ModelConfiger) -> 'Engine':
         """Load a model from the given configuration and return an Engine instance.
 
         Args:

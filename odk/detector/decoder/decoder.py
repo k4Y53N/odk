@@ -14,7 +14,7 @@ __all__ = [
 class Decoder(ABC, Generic[OptionT, ResultT]):
     @classmethod
     @abstractmethod
-    def load(cls, engine: Engine) -> 'Decoder[OptionT, ResultT]':
+    def from_engine(cls, engine: Engine) -> 'Decoder[OptionT, ResultT]':
         """Load and initialize a decoder from the given engine.
 
         Args:

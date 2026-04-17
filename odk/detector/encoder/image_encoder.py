@@ -20,7 +20,7 @@ class ImageEncoder(Encoder[ObjectDetectOption]):
         self.dtype: DTypeLike = dtype
 
     @classmethod
-    def load(cls, engine: Engine) -> 'ImageEncoder':
+    def from_engine(cls, engine: Engine) -> 'ImageEncoder':
         input_shape = engine.input_shapes[0]  # [batch, channel, height, width]
         input_dtype = engine.input_dtypes[0]
         height, width = input_shape[2], input_shape[3]

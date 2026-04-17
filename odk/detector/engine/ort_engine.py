@@ -26,7 +26,7 @@ class OrtEngine(Engine):
         )
 
     @classmethod
-    def load(cls, configer: ModelConfiger) -> 'OrtEngine':
+    def from_configer(cls, configer: ModelConfiger) -> 'OrtEngine':
         return cls(
             ort.InferenceSession(
                 path_or_bytes=configer.weight_path,

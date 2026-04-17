@@ -20,7 +20,7 @@ def lazy_engine(configer: ModelConfiger) -> Engine:
     if suffix == '.onnx':
         from .ort_engine import OrtEngine
 
-        return OrtEngine.load(configer)
+        return OrtEngine.from_configer(configer)
 
     raise NotImplementedError(
         f'Unsupported weight format: `{suffix}`, path: {weight_path}'
