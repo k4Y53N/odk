@@ -65,7 +65,7 @@ def xyxy_to_xywh(bboxes: NDArray[np.float32]) -> NDArray[np.float32]:
     return bboxes
 
 
-class YoloDecoder(Decoder[ObjectDetectOption, ObjectDetectResult], ABC):
+class YoloDecoder(Decoder[ObjectDetectOption, list[ObjectDetectResult]], ABC):
     def __init__(self, height: int, width: int):
         self.height: int = height
         self.width: int = width
