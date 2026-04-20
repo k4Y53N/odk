@@ -1,5 +1,7 @@
+import json
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 __all__ = [
     'ModelConfiger',
@@ -11,6 +13,13 @@ __all__ = [
 @dataclass
 class ModelConfiger:
     weight_path: str
+
+    @classmethod
+    def from_config_path(cls, path: str):
+        with open(path, 'r') as f:
+            fields: dict[str, Any] = json.load(f)
+
+        return cls(**fields)
 
 
 class Version(str, Enum):
