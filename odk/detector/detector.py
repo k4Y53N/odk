@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Sequence
+from typing import Generic, Sequence, TypeVar
 
 from numpy.typing import NDArray
 
@@ -11,6 +11,8 @@ from .types import ConfigT, OptionT, ResultT
 __all__ = [
     'Detector',
 ]
+
+Self = TypeVar('Self', bound='Detector[ConfigT, OptionT, ResultT]')
 
 
 class Detector(ABC, Generic[ConfigT, OptionT, ResultT]):
@@ -46,10 +48,7 @@ class Detector(ABC, Generic[ConfigT, OptionT, ResultT]):
 
     @classmethod
     @abstractmethod
-    def get_decoder_class(
-        cls,
-        configer: ConfigT,
-    ) -> type[Decoder[OptionT, ResultT]]:
+    def get_decoder_class(cls, configer: ConfigT) -> type[Decoder[OptionT, ResultT]]:
         """Return the decoder class used for output postprocessing.
 
         Args:
@@ -62,21 +61,18 @@ class Detector(ABC, Generic[ConfigT, OptionT, ResultT]):
         """
 
     @classmethod
-    def from_config_path(
-        cls,
-        path: str,
-    ) -> 'Detector[ConfigT, OptionT, ResultT]':
-        """Create a detector instance from a JSON configuration file.
+    def from_config_path(cls: type[Self], path: str) -> Self:
+        """Create a detector instance from a configuration file path.
 
-        Loads model configuration from the given path and initialises the engine,
-        encoder, and decoder accordingly.
+        Loads the model configuration using the configer class returned by
+        ``get_configer_class``, then constructs the detector with the resulting
+        configuration.
 
         Args:
-            path (str): Filesystem path to the JSON configuration file.
+            path (str): Path to the model configuration file.
 
         Returns:
-            Detector[ConfigT, OptionT, ResultT]: A fully initialised detector ready
-                to perform inference.
+            Self: Detector instance.
         """
         configer = cls.get_configer_class().from_config_path(path)
         return cls(configer)
