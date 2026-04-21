@@ -62,6 +62,11 @@ class ObjectDetectResult:
         )
 
     def copy(self) -> 'ObjectDetectResult':
+        """Return a deep copy of this result.
+
+        Returns:
+            ObjectDetectResult: A new instance with copied arrays.
+        """
         return ObjectDetectResult(
             bboxes=self.bboxes.copy(),
             classes=self.classes.copy(),
@@ -73,6 +78,15 @@ class ObjectDetectResult:
         self,
         mask: NDArray[np.int_] | NDArray[np.bool_],
     ) -> 'ObjectDetectResult':
+        """Return a new result containing only the elements selected by *mask*.
+
+        Args:
+            mask (NDArray[np.int_] | NDArray[np.bool_]): Boolean or integer index
+                array used to select detections.
+
+        Returns:
+            ObjectDetectResult: The filtered result.
+        """
         return ObjectDetectResult(
             bboxes=self.bboxes[mask],
             classes=self.classes[mask],
@@ -81,11 +95,27 @@ class ObjectDetectResult:
         )
 
     def class_filter(self, classes: NDArray[np.int_]) -> 'ObjectDetectResult':
+        """Return a new result keeping only detections whose class is in *classes*.
+
+        Args:
+            classes (NDArray[np.int_]): Array of class IDs to keep.
+
+        Returns:
+            ObjectDetectResult: The filtered result.
+        """
         mask = np.isin(self.classes, classes)
         return self.filter(mask)
 
-    def score_filter(self, score: float) -> 'ObjectDetectResult':
-        mask = self.scores >= score
+    def score_filter(self, threshold: float) -> 'ObjectDetectResult':
+        """Return a new result keeping only detections with score >= *threshold*.
+
+        Args:
+            threshold (float): Minimum confidence score to keep.
+
+        Returns:
+            ObjectDetectResult: The filtered result.
+        """
+        mask = self.scores >= threshold
         return self.filter(mask)
 
     def add(self, x: float, y: float, inplace: bool = False) -> 'ObjectDetectResult':
