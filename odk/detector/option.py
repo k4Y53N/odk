@@ -1,5 +1,9 @@
 from dataclasses import dataclass
 
+__all__ = [
+    'ObjectDetectOption',
+]
+
 
 @dataclass(slots=True)
 class ObjectDetectOption:
