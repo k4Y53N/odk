@@ -5,14 +5,15 @@ import numpy as np
 from numpy.typing import NDArray
 
 __all__ = [
-    'ObjectInfo',
-    'ObjectDetectResult',
+    'ObjectTrackInfo',
+    'ObjectTrackResult',
 ]
 
 
 @dataclass(slots=True)
-class ObjectInfo:
+class ObjectTrackInfo:
     bbox: NDArray[np.float32]
+    track_id: int
     class_id: int
     score: float
     label: str
@@ -33,10 +34,20 @@ class ObjectInfo:
     def bottom(self) -> float:
         return self.bbox[3]
 
+    @property
+    def bbox_id(self) -> int:
+        """Deprecated alias for :attr:`track_id`."""
+        return self.track_id
+
+    @bbox_id.setter
+    def bbox_id(self, id: int):
+        self.track_id = id
+
 
 @dataclass(slots=True)
-class ObjectDetectResult:
+class ObjectTrackResult:
     bboxes: NDArray[np.float32]
+    track_ids: NDArray[np.uint64]
     classes: NDArray[np.uint16]
     scores: NDArray[np.float32]
     class_label: list[str]
@@ -45,30 +56,41 @@ class ObjectDetectResult:
         if self.bboxes.shape[0] == 0:
             self.bboxes = self.bboxes.reshape((-1, 4))
 
-    def __len__(self) -> int:
+    def __len__(self):
         return self.bboxes.shape[0]
 
-    def __iter__(self) -> Generator[ObjectInfo, None, None]:
+    def __iter__(self) -> Generator[ObjectTrackInfo, None, None]:
         for i in range(len(self)):
             yield self[i]
 
-    def __getitem__(self, index: int) -> ObjectInfo:
-        class_id: int = self.classes[index]
-        return ObjectInfo(
+    def __getitem__(self, index: int) -> ObjectTrackInfo:
+        class_id = self.classes[index]
+        return ObjectTrackInfo(
             bbox=self.bboxes[index],
-            class_id=class_id,
+            track_id=self.track_ids[index],
+            class_id=self.classes[index],
             score=self.scores[index],
             label=self.class_label[class_id],
         )
 
-    def copy(self) -> 'ObjectDetectResult':
+    @property
+    def bbox_ids(self):
+        """Deprecated alias for :attr:`track_ids`."""
+        return self.track_ids
+
+    @bbox_ids.setter
+    def bbox_ids(self, track_ids: NDArray[np.uint64]):
+        self.track_ids = track_ids
+
+    def copy(self) -> 'ObjectTrackResult':
         """Return a deep copy of this result.
 
         Returns:
-            ObjectDetectResult: A new instance with copied arrays.
+            ObjectTrackResult: A new instance with copied arrays.
         """
-        return ObjectDetectResult(
+        return ObjectTrackResult(
             bboxes=self.bboxes.copy(),
+            track_ids=self.track_ids.copy(),
             classes=self.classes.copy(),
             scores=self.scores.copy(),
             class_label=self.class_label,
@@ -77,7 +99,7 @@ class ObjectDetectResult:
     def filter(
         self,
         mask: NDArray[np.int_] | NDArray[np.bool_],
-    ) -> 'ObjectDetectResult':
+    ) -> 'ObjectTrackResult':
         """Return a new result containing only the elements selected by *mask*.
 
         Args:
@@ -85,40 +107,54 @@ class ObjectDetectResult:
                 array used to select detections.
 
         Returns:
-            ObjectDetectResult: The filtered result.
+            ObjectTrackResult: The filtered result.
         """
-        return ObjectDetectResult(
+        return ObjectTrackResult(
             bboxes=self.bboxes[mask],
+            track_ids=self.track_ids[mask],
             classes=self.classes[mask],
             scores=self.scores[mask],
             class_label=self.class_label,
         )
 
-    def class_filter(self, classes: NDArray[np.int_]) -> 'ObjectDetectResult':
+    def id_filter(self, track_ids: NDArray[np.int_]) -> 'ObjectTrackResult':
+        """Return a new result keeping only detections whose track ID is in
+            *track_ids*.
+
+        Args:
+            track_ids (NDArray[np.int_]): Array of track IDs to keep.
+
+        Returns:
+            ObjectTrackResult: The filtered result.
+        """
+        mask = np.isin(self.track_ids, track_ids)
+        return self.filter(mask)
+
+    def class_filter(self, classes: NDArray[np.int_]) -> 'ObjectTrackResult':
         """Return a new result keeping only detections whose class is in *classes*.
 
         Args:
             classes (NDArray[np.int_]): Array of class IDs to keep.
 
         Returns:
-            ObjectDetectResult: The filtered result.
+            ObjectTrackResult: The filtered result.
         """
         mask = np.isin(self.classes, classes)
         return self.filter(mask)
 
-    def score_filter(self, threshold: float) -> 'ObjectDetectResult':
+    def score_filter(self, threshold: float) -> 'ObjectTrackResult':
         """Return a new result keeping only detections with score >= *threshold*.
 
         Args:
             threshold (float): Minimum confidence score to keep.
 
         Returns:
-            ObjectDetectResult: The filtered result.
+            ObjectTrackResult: The filtered result.
         """
         mask = self.scores >= threshold
         return self.filter(mask)
 
-    def add(self, x: float, y: float, inplace: bool = False) -> 'ObjectDetectResult':
+    def add(self, x: float, y: float, inplace: bool = False) -> 'ObjectTrackResult':
         """Offset all bounding boxes by the given amounts.
 
         Args:
@@ -128,7 +164,7 @@ class ObjectDetectResult:
                 copy. Defaults to False.
 
         Returns:
-            ObjectDetectResult: The offset result.
+            ObjectTrackResult: The offset result.
         """
         instance = self
 
@@ -145,7 +181,7 @@ class ObjectDetectResult:
         x: float,
         y: float,
         inplace: bool = False,
-    ) -> 'ObjectDetectResult':
+    ) -> 'ObjectTrackResult':
         """Offset all bounding boxes by the given amounts.
 
         Args:
@@ -155,15 +191,15 @@ class ObjectDetectResult:
                 copy. Defaults to False.
 
         Returns:
-            ObjectDetectResult: The offset result.
+            ObjectTrackResult: The offset result.
         """
         return self.add(-x, -y, inplace)
 
-    def plus(self, x: float, y: float, inplace: bool = False) -> 'ObjectDetectResult':
+    def plus(self, x: float, y: float, inplace: bool = False) -> 'ObjectTrackResult':
         """Alias for :meth:`add`."""
         return self.add(x, y, inplace)
 
-    def minus(self, x: float, y: float, inplace: bool = False) -> 'ObjectDetectResult':
+    def minus(self, x: float, y: float, inplace: bool = False) -> 'ObjectTrackResult':
         """Alias for :meth:`subtract`."""
         return self.add(-x, -y, inplace)
 
@@ -172,7 +208,7 @@ class ObjectDetectResult:
         x: float,
         y: float,
         inplace: bool = False,
-    ) -> 'ObjectDetectResult':
+    ) -> 'ObjectTrackResult':
         """Scale all bounding boxes by the given factors.
 
         Args:
@@ -182,7 +218,7 @@ class ObjectDetectResult:
                 copy. Defaults to False.
 
         Returns:
-            ObjectDetectResult: The scaled result.
+            ObjectTrackResult: The scaled result.
         """
         instance = self
 
@@ -194,7 +230,7 @@ class ObjectDetectResult:
 
         return instance
 
-    def divide(self, x: float, y: float, inplace: bool = False) -> 'ObjectDetectResult':
+    def divide(self, x: float, y: float, inplace: bool = False) -> 'ObjectTrackResult':
         """Divide all bounding box coordinates by the given factors.
 
         Args:
@@ -204,6 +240,6 @@ class ObjectDetectResult:
                 copy. Defaults to False.
 
         Returns:
-            ObjectDetectResult: The scaled result.
+            ObjectTrackResult: The scaled result.
         """
         return self.multiply(1 / x, 1 / y, inplace)
