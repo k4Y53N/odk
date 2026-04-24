@@ -126,7 +126,7 @@ class Track:
 
 @dataclass(slots=True)
 class SortTracker(Tracker):
-    _threshold: float = 0.3
+    threshold: float = 0.3
     _frame: int = 0
     _track_id: int = 0
     _tracks: list[Track] = field(default_factory=list[Track])
@@ -146,7 +146,7 @@ class SortTracker(Tracker):
         track_bboxes = batch_xysr_to_xyxy(track_xysr)
         iou = batch_iou(track_bboxes, result.bboxes)
         match_track, match_detect = linear_sum_assignment(-iou)
-        mask = iou[match_track, match_detect] >= self._threshold
+        mask = iou[match_track, match_detect] >= self.threshold
         match_track, match_detect = match_track[mask], match_detect[mask]
         not_match_detect = np.delete(np.arange(len(result)), match_detect)
         new_track_ids = self._extend_new_track(result, not_match_detect)
