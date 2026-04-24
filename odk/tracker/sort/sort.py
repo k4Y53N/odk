@@ -6,7 +6,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ...detector.result import ObjectDetectResult
-from ..result import ObjectTrackResult
 from ..tracker import Tracker
 from .kalman_tracker import KalmanTrack
 
@@ -133,7 +132,7 @@ class SortTracker(Tracker):
     _track_id: int = 0
     _tracks: list[Track] = field(default_factory=list[Track])
 
-    def update(self, result: ObjectDetectResult) -> ObjectTrackResult:
+    def update(self, result: ObjectDetectResult) -> NDArray[np.uint64]:
         self._frame += 1
 
         if not len(result):
@@ -157,19 +156,13 @@ class SortTracker(Tracker):
         track_ids[match_detect] = buff_ids[match_track]
         track_ids[not_match_detect] = new_track_ids
 
-        return ObjectTrackResult(
-            bboxes=result.bboxes,
-            track_ids=track_ids,
-            classes=result.classes,
-            scores=result.scores,
-            class_label=result.class_label,
-        )
+        return track_ids
 
-    def _when_detect_empty(self) -> ObjectTrackResult:
+    def _when_detect_empty(self) -> NDArray[np.uint64]:
         self._remove_timeout()
-        return ObjectTrackResult.empty()
+        return np.empty(0, dtype=np.uint64)
 
-    def _when_track_empty(self, result: ObjectDetectResult) -> ObjectTrackResult:
+    def _when_track_empty(self, result: ObjectDetectResult) -> NDArray[np.uint64]:
         assign_ids = [self._assign_id() for _ in range(len(result))]
         bboxes = result.bboxes.copy()
         xysrs = batch_xyxy_to_xysr(bboxes)
@@ -182,13 +175,7 @@ class SortTracker(Tracker):
             for xysr, id in zip(xysrs, assign_ids)
         )
 
-        return ObjectTrackResult(
-            bboxes=result.bboxes,
-            track_ids=np.asarray(assign_ids, dtype=np.uint64),
-            classes=result.classes,
-            scores=result.scores,
-            class_label=result.class_label,
-        )
+        return np.array(assign_ids, dtype=np.uint64)
 
     def _remove_timeout(self):
         expire_index = [

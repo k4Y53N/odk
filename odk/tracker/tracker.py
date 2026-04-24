@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 
+import numpy as np
+from numpy.typing import NDArray
+
 from ..detector.result import ObjectDetectResult
-from .result import ObjectTrackResult
 
 __all__ = [
     'Tracker',
@@ -10,15 +12,17 @@ __all__ = [
 
 class Tracker(ABC):
     @abstractmethod
-    def update(self, result: ObjectDetectResult) -> ObjectTrackResult:
-        """Update the tracker with a new frame's detection result and return tracked
-        objects.
+    def update(self, result: ObjectDetectResult) -> NDArray[np.uint64]:
+        """Update tracker state with new detections and return assigned track IDs.
+
+        Associates the given detection results with existing tracks or creates
+        new tracks, returning a unique track ID for each detection.
 
         Args:
-            result (ObjectDetectResult): Detection result containing bounding boxes,
-                class IDs, scores, and class labels for the current frame.
+            result (ObjectDetectResult): Detection result containing bounding
+                boxes, class IDs, scores, and class labels for the current frame.
 
         Returns:
-            ObjectTrackResult: Tracking result with bounding boxes, assigned track IDs,
-                class IDs, scores, and class labels for each tracked object.
+            NDArray[np.uint64]: Array of track IDs with shape ``(N,)``, one per
+                detection in *result*, where ``N = len(result)``.
         """
