@@ -82,21 +82,6 @@ class ObjectTrackResult:
     def bbox_ids(self, track_ids: NDArray[np.uint64]):
         self.track_ids = track_ids
 
-    @classmethod
-    def empty(cls) -> 'ObjectTrackResult':
-        """Create an empty result with no detections.
-
-        Returns:
-            ObjectTrackResult: A result with zero-length arrays.
-        """
-        return cls(
-            bboxes=np.empty((0, 4), dtype=np.float32),
-            track_ids=np.empty(0, dtype=np.uint64),
-            classes=np.empty(0, dtype=np.uint16),
-            scores=np.empty(0, dtype=np.float32),
-            class_label=[],
-        )
-
     def copy(self) -> 'ObjectTrackResult':
         """Return a deep copy of this result.
 
