@@ -126,7 +126,6 @@ class Track:
 
 @dataclass(slots=True)
 class SortTracker(Tracker):
-    timeout: int = 10
     _threshold: float = 0.3
     _frame: int = 0
     _track_id: int = 0
