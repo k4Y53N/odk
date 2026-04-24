@@ -143,7 +143,7 @@ class SortTracker(Tracker):
 
         self._remove_timeout()
         track_xysr = np.array([track.predict() for track in self._tracks])
-        buff_ids = np.array([track.track_id for track in self._tracks])
+        buff_ids = np.array([track.track_id for track in self._tracks], dtype=np.uint64)
         track_bboxes = batch_xysr_to_xyxy(track_xysr)
         iou = batch_iou(track_bboxes, result.bboxes)
         match_track, match_detect = linear_sum_assignment(-iou)
