@@ -15,6 +15,15 @@ class TrackOption:
     sort_threshold: float = 0.3
 
     def create(self) -> Tracker:
+        """Create and return a Tracker instance based on the current TrackOption
+        settings.
+
+        Returns:
+            Tracker: An instance of the selected tracker type (currently only 'SORT' is supported).
+
+        Raises:
+            NotImplementedError: If the specified tracker_type is not supported.
+        """
         if self.tracker_type == 'SORT':
             from .sort import SortTracker
 
