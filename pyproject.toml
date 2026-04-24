@@ -22,6 +22,8 @@ classifiers = [
 
 [project.optional-dependencies]
 opencv = ["opencv-python"]
+ort = ["onnxruntime"]
+ort-gpu = ["onnxruntime-gpu"]
 
 [project.urls]
 Repository = "https://github.com/k4Y53N/odk"
