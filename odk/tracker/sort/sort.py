@@ -163,7 +163,7 @@ class SortTracker(Tracker):
         return np.empty(0, dtype=np.uint64)
 
     def _when_track_empty(self, result: ObjectDetectResult) -> NDArray[np.uint64]:
-        assign_ids = [self._assign_id() for _ in range(len(result))]
+        next_ids = [self._next_id() for _ in range(len(result))]
         bboxes = result.bboxes.copy()
         xysrs = batch_xyxy_to_xysr(bboxes)
         self._tracks.extend(
@@ -172,10 +172,10 @@ class SortTracker(Tracker):
                 frame=self._frame,
                 xysr=xysr,
             )
-            for xysr, id in zip(xysrs, assign_ids)
+            for xysr, id in zip(xysrs, next_ids)
         )
 
-        return np.array(assign_ids, dtype=np.uint64)
+        return np.array(next_ids, dtype=np.uint64)
 
     def _remove_timeout(self):
         expire_index = [
@@ -187,7 +187,7 @@ class SortTracker(Tracker):
         for index in expire_index[::-1]:
             self._tracks.pop(index)
 
-    def _assign_id(self) -> int:
+    def _next_id(self) -> int:
         self._track_id = (self._track_id + 1) % UINT64_MAX
         return self._track_id
 
@@ -212,14 +212,14 @@ class SortTracker(Tracker):
     ) -> list[int]:
         bboxes = result.bboxes[mask]
         xysrs = batch_xyxy_to_xysr(bboxes)
-        track_ids = [self._assign_id() for _ in range(len(xysrs))]
+        next_ids = [self._next_id() for _ in range(len(xysrs))]
         self._tracks.extend(
             Track.from_xysr(
                 track_id=track_id,
                 frame=self._frame,
                 xysr=xysr,
             )
-            for xysr, track_id in zip(xysrs, track_ids)
+            for xysr, track_id in zip(xysrs, next_ids)
         )
 
-        return track_ids
+        return next_ids
