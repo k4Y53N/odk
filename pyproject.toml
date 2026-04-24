@@ -1,0 +1,44 @@
+[project]
+name = "odk"
+dynamic = ["version"]
+description = "Object Detection Kit"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "k4Y53N" },
+]
+keywords = ["object-detection", "computer-vision", "opencv"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+dependencies = [
+    "numpy",
+]
+
+[project.optional-dependencies]
+opencv = ["opencv-python"]
+
+[project.urls]
+Repository = "https://github.com/k4Y53N/odk"
+
+[tool.setuptools]
+packages = ["odk"]
+
+[tool.setuptools.dynamic]
+version = {attr = "odk.__version__"}
+
+[tool.black]
+line-length = 88
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+combine_star = true
