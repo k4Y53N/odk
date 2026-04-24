@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
-from dataclasses import dataclass
+
 from ..detector.result import ObjectDetectResult
+from .result import ObjectTrackResult
 
 __all__ = [
     'Tracker',
@@ -39,3 +41,24 @@ class Tracker(ABC):
             NDArray[np.uint64]: Array of track IDs with shape ``(N,)``, one per
                 detection in *result*, where ``N = len(result)``.
         """
+
+    def track(self, result: ObjectDetectResult) -> ObjectTrackResult:
+        """Run tracking on a detection result and return a combined track result.
+
+        Calls :meth:`update` to obtain track IDs, then merges them with the original
+        detection data into an :class:`ObjectTrackResult`.
+
+        Args:
+            result (ObjectDetectResult): Detection result for the current frame.
+
+        Returns:
+            ObjectTrackResult: Track Result
+        """
+        track_ids: NDArray[np.uint64] = self.update(result)
+        return ObjectTrackResult(
+            bboxes=result.bboxes,
+            track_ids=track_ids,
+            classes=result.classes,
+            scores=result.scores,
+            class_label=result.class_label,
+        )
