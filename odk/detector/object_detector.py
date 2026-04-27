@@ -1,5 +1,6 @@
+from collections.abc import Iterable, Sequence
 from itertools import islice
-from typing import Iterable, Sequence, TypeVar
+from typing import TypeVar
 
 import numpy as np
 from numpy.typing import NDArray

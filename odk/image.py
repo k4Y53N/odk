@@ -1,8 +1,9 @@
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import PathLike
 from pathlib import Path
-from typing import Iterable, Literal
+from typing import Literal
 
 import cv2
 import numpy as np
