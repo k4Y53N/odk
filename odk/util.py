@@ -1,13 +1,24 @@
 from collections.abc import Callable, Generator
+from datetime import datetime
 from functools import wraps
 from random import randint
 from time import perf_counter
 from typing import ParamSpec, TypeVar
 
 __all__ = [
+    'now',
     'timeit',
     'ColorPool',
 ]
+
+
+def now() -> datetime:
+    """Return the current local time as a timezone-aware datetime.
+
+    Returns:
+        datetime: Current timestamp in the system local timezone.
+    """
+    return datetime.now().astimezone()
 
 
 P = ParamSpec('P')
