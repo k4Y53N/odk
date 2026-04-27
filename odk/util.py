@@ -1,9 +1,39 @@
-from collections.abc import Generator
+from collections.abc import Callable, Generator
+from functools import wraps
 from random import randint
+from time import perf_counter
+from typing import ParamSpec, TypeVar
 
 __all__ = [
+    'timeit',
     'ColorPool',
 ]
+
+
+P = ParamSpec('P')
+R = TypeVar('R')
+
+
+def timeit(func: Callable[P, R]) -> Callable[P, R]:
+    """Measure and print the runtime of the decorated function.
+
+    Args:
+        func (Callable[P, R]): Function to wrap.
+
+    Returns:
+        Callable[P, R]: Wrapped function that prints elapsed time in seconds.
+    """
+
+    @wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        start = perf_counter()
+        ret = func(*args, **kwargs)
+        elapsed = perf_counter() - start
+        print(f'{func.__qualname__} executed in {elapsed:.6f}s')
+
+        return ret
+
+    return wrapper
 
 
 class ColorPool:
