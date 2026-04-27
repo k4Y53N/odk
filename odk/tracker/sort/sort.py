@@ -1,5 +1,5 @@
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Sequence
 
 import lap
 import numpy as np
@@ -131,19 +131,28 @@ class SortTracker(Tracker):
     _track_id: int = 0
     _tracks: list[Track] = field(default_factory=list[Track])
 
+    def __len__(self):
+        """Return the number of currently active tracks."""
+        return len(self._tracks)
+
     def update(self, result: ObjectDetectResult) -> NDArray[np.uint64]:
         self._frame += 1
 
         if not len(result):
             return self._when_detect_empty()
 
-        if not len(self._tracks):
+        if not len(self):
             return self._when_track_empty(result)
 
         self._remove_timeout()
-        track_xysr = np.array([track.predict() for track in self._tracks])
-        buff_ids = np.array([track.track_id for track in self._tracks], dtype=np.uint64)
-        track_bboxes = batch_xysr_to_xyxy(track_xysr)
+        track_xysrs = np.empty((len(self), 4), dtype=np.float32)
+        buff_ids = np.empty(len(self), dtype=np.uint64)
+
+        for i, track in enumerate(self._tracks):
+            track_xysrs[i] = track.predict()
+            buff_ids[i] = track.track_id
+
+        track_bboxes = batch_xysr_to_xyxy(track_xysrs)
         iou = batch_iou(track_bboxes, result.bboxes)
         match_track, match_detect = linear_sum_assignment(-iou)
         mask = iou[match_track, match_detect] >= self.threshold

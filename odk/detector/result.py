@@ -1,5 +1,5 @@
+from collections.abc import Generator
 from dataclasses import dataclass
-from typing import Generator
 
 import numpy as np
 from numpy.typing import NDArray
