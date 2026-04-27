@@ -11,7 +11,7 @@ __all__ = [
 @dataclass(slots=True, kw_only=True)
 class TrackOption:
     timeout: int = 10
-    tracker_type: Literal['SORT'] = 'SORT'
+    tracker_type: Literal['sort'] = 'sort'
     sort_threshold: float = 0.3
 
     def create(self) -> Tracker:
@@ -19,12 +19,13 @@ class TrackOption:
         settings.
 
         Returns:
-            Tracker: An instance of the selected tracker type (currently only 'SORT' is supported).
+            Tracker: An instance of the selected tracker type (currently only 'sort'
+                is supported).
 
         Raises:
             NotImplementedError: If the specified tracker_type is not supported.
         """
-        if self.tracker_type == 'SORT':
+        if self.tracker_type == 'sort':
             from .sort import SortTracker
 
             return SortTracker(
