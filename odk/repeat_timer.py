@@ -96,12 +96,12 @@ class RepeatTimer(Thread, ABC):
         ``interval`` seconds between ticks.
         """
         with self:
-            while self.is_running(self.__interval):
+            while self.is_active(self.__interval):
                 self.routine()
 
     def start(self):
         with self.__lock:
-            if self.is_alive() or not self.is_running():
+            if self.is_alive() or not self.is_active():
                 return
 
             super().start()
@@ -109,25 +109,23 @@ class RepeatTimer(Thread, ABC):
     def close(self):
         """Request the timer loop to stop.
 
-        Sets the internal stop event so :meth:`is_running` returns ``False``
+        Sets the internal stop event so :meth:`is_active` returns ``False``
         and the worker loop exits on the next check.
         """
         self.__event.set()
 
-    def is_running(self, timeout: float = 0) -> bool:
+    def is_active(self, timeout: float = 0) -> bool:
         """Check whether the timer is still active.
 
-        Waits up to ``timeout`` seconds for the internal stop event.
-        Returns ``True`` when no stop signal is received during that period,
-        otherwise returns ``False``.
+        Waits up to ``timeout`` seconds for the internal stop event. Returns ``True``
+        if no stop signal is received, ``False`` otherwise.
 
         Args:
-            timeout (float, optional): Maximum time to wait in seconds for a
-                stop signal. Defaults to 0.
+            timeout (float, optional): Seconds to wait for a stop signal.
+                Defaults to 0.
 
         Returns:
-            bool: ``True`` if the timer is still running, ``False`` if it has
-                been stopped.
+            bool: ``True`` if still running, ``False`` if stopped.
         """
         return not self.__event.wait(timeout)
 
