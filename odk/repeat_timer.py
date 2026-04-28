@@ -60,6 +60,11 @@ class RepeatTimer(Thread, ABC):
 
         return False
 
+    @property
+    def lock(self) -> Lock:
+        """Thread lock used to protect timer operations."""
+        return self.__lock
+
     @abstractmethod
     def routine(self):
         """Run one timer tick.
