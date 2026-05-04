@@ -38,9 +38,16 @@ class ImageEncoder(Encoder[Any]):
         tensor = [
             cv2.resize(image, (self.width, self.height)) for image in origin_input
         ]
-        tensor = np.stack(tensor)
-        tensor = tensor[..., ::-1]  # BGR -> RGB
-        tensor = np.transpose(tensor, (0, 3, 1, 2))  # [batch, channel, height, width]
+
+        if len(tensor) == 1:
+            tensor = tensor[0]
+            tensor = tensor[..., ::-1]
+            tensor = np.transpose(tensor, (2, 0, 1))
+            tensor = tensor[np.newaxis, ...]
+        else:
+            tensor = np.stack(tensor)
+            tensor = tensor[..., ::-1]
+            tensor = np.transpose(tensor, (0, 3, 1, 2))
 
         if self.dtype is np.uint8:
             return [tensor]
