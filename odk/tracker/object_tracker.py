@@ -66,6 +66,18 @@ class ObjectTracker:
         """
         return ObjectTracker(detector.detect, option)
 
+    def update(self, result: ObjectDetectResult) -> ObjectTrackResult:
+        """Update the tracker with detection results without running detection.
+
+        Args:
+            result (ObjectDetectResult): The detection results to feed into the
+                tracker.
+
+        Returns:
+            ObjectTrackResult: The tracking results with assigned track IDs.
+        """
+        return self._tracker.track(result)
+
     def track(
         self,
         image: Image,
@@ -100,7 +112,7 @@ class ObjectTracker:
         if class_mask:
             result = result.class_filter(class_mask)
 
-        return self._tracker.track(result)
+        return self.update(result)
 
     def detect(
         self,
