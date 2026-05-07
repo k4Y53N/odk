@@ -68,7 +68,7 @@ class ObjectTrackResult:
         return ObjectTrackInfo(
             bbox=self.bboxes[index],
             track_id=self.track_ids[index],
-            class_id=self.classes[index],
+            class_id=class_id,
             score=self.scores[index],
             label=self.class_label[class_id],
         )
