@@ -107,6 +107,18 @@ class Flow:
         """
         self.call(skip_standalone, Node.join, timeout)
 
+    def is_alive(self, skip_standalone: bool = True) -> bool:
+        """Check whether all nodes in the flow are alive.
+
+        Args:
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
+                Defaults to True.
+
+        Returns:
+            bool: True if all checked nodes are alive.
+        """
+        return self.call(skip_standalone, Node.is_alive)
+
     def is_active(
         self,
         skip_standalone: bool = True,
