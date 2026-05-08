@@ -5,7 +5,6 @@ import lap
 import numpy as np
 from numpy.typing import NDArray
 
-from ...detector.result import ObjectDetectResult
 from ..tracker import Tracker
 from .kalman_tracker import KalmanTrack
 
@@ -135,14 +134,20 @@ class SortTracker(Tracker):
         """Return the number of currently active tracks."""
         return len(self._tracks)
 
-    def update(self, result: ObjectDetectResult) -> NDArray[np.uint64]:
+    def update(
+        self,
+        bboxes: NDArray[np.float32],
+        classes: NDArray[np.uint16],
+        scores: NDArray[np.float32],
+    ) -> NDArray[np.uint64]:
         self._frame += 1
+        detect_length = len(bboxes)
 
-        if not len(result):
+        if not detect_length:
             return self._when_detect_empty()
 
         if not len(self):
-            return self._when_track_empty(result)
+            return self._when_track_empty(bboxes)
 
         self._remove_timeout()
         track_xysrs = np.empty((len(self), 4), dtype=np.float32)
@@ -153,14 +158,14 @@ class SortTracker(Tracker):
             buff_ids[i] = track.track_id
 
         track_bboxes = batch_xysr_to_xyxy(track_xysrs)
-        iou = batch_iou(track_bboxes, result.bboxes)
+        iou = batch_iou(track_bboxes, bboxes)
         match_track, match_detect = linear_sum_assignment(-iou)
         mask = iou[match_track, match_detect] >= self.threshold
         match_track, match_detect = match_track[mask], match_detect[mask]
-        not_match_detect = np.delete(np.arange(len(result)), match_detect)
-        new_track_ids = self._extend_new_track(result, not_match_detect)
-        self._assign_track(match_track, result, match_detect)
-        track_ids = np.empty(len(result), dtype=np.uint64)
+        not_match_detect = np.delete(np.arange(detect_length), match_detect)
+        new_track_ids = self._extend_new_track(bboxes, not_match_detect)
+        self._assign_track(match_track, bboxes, match_detect)
+        track_ids = np.empty(detect_length, dtype=np.uint64)
         track_ids[match_detect] = buff_ids[match_track]
         track_ids[not_match_detect] = new_track_ids
 
@@ -170,9 +175,9 @@ class SortTracker(Tracker):
         self._remove_timeout()
         return np.empty(0, dtype=np.uint64)
 
-    def _when_track_empty(self, result: ObjectDetectResult) -> NDArray[np.uint64]:
-        next_ids = [self._next_id() for _ in range(len(result))]
-        bboxes = result.bboxes.copy()
+    def _when_track_empty(self, bboxes: NDArray[np.float32]) -> NDArray[np.uint64]:
+        next_ids = [self._next_id() for _ in range(len(bboxes))]
+        bboxes = bboxes.copy()
         xysrs = batch_xyxy_to_xysr(bboxes)
         self._tracks.extend(
             Track.from_xysr(
@@ -202,10 +207,10 @@ class SortTracker(Tracker):
     def _assign_track(
         self,
         match_track: Sequence[int],
-        result: ObjectDetectResult,
+        bboxes: NDArray[np.float32],
         match_detect: Sequence[int],
     ):
-        bboxes = result.bboxes[match_detect]
+        bboxes = bboxes[match_detect]
         xysrs = batch_xyxy_to_xysr(bboxes)
 
         for index, xysr in zip(match_track, xysrs):
@@ -215,10 +220,10 @@ class SortTracker(Tracker):
 
     def _extend_new_track(
         self,
-        result: ObjectDetectResult,
+        bboxes: NDArray[np.float32],
         mask: NDArray[np.int_],
     ) -> list[int]:
-        bboxes = result.bboxes[mask]
+        bboxes = bboxes[mask]
         xysrs = batch_xyxy_to_xysr(bboxes)
         next_ids = [self._next_id() for _ in range(len(xysrs))]
         self._tracks.extend(
