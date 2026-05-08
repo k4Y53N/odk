@@ -107,17 +107,23 @@ class Flow:
         """
         self.call(skip_keep_alive, Node.join, timeout)
 
-    def is_active(self, skip_keep_alive: bool = True) -> bool:
+    def is_active(
+        self,
+        skip_keep_alive: bool = True,
+        timeout: float | None = 0,
+    ) -> bool:
         """Check whether all nodes in the flow are active.
 
         Args:
             skip_keep_alive (bool, optional): If True, skip nodes marked as keep_alive.
                 Defaults to True.
+            timeout (float | None, optional): Seconds to wait for a stop signal on each
+                node. If ``None``, blocks indefinitely. Defaults to 0.
 
         Returns:
             bool: True if all checked nodes are active.
         """
-        return self.call(skip_keep_alive, Node.is_active)
+        return self.call(skip_keep_alive, Node.is_active, timeout)
 
     def add_enter_hook(self, hook: Hook, skip_keep_alive: bool = True):
         """Register an enter hook on each node in the flow.
