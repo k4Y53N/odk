@@ -114,15 +114,15 @@ class RepeatTimer(Thread, ABC):
         """
         self.__event.set()
 
-    def is_active(self, timeout: float = 0) -> bool:
+    def is_active(self, timeout: float | None = 0) -> bool:
         """Check whether the timer is still active.
 
         Waits up to ``timeout`` seconds for the internal stop event. Returns ``True``
         if no stop signal is received, ``False`` otherwise.
 
         Args:
-            timeout (float, optional): Seconds to wait for a stop signal.
-                Defaults to 0.
+            timeout (float | None, optional): Seconds to wait for a stop signal. If
+                ``None``, blocks indefinitely until stopped. Defaults to 0.
 
         Returns:
             bool: ``True`` if still running, ``False`` if stopped.
