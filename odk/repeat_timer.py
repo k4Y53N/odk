@@ -12,7 +12,7 @@ P = ParamSpec('P')
 R = TypeVar('R')
 
 
-class Runnable:
+class Hook:
     def __init__(self, fn: Callable[P, R], *args: P.args, **kwargs: P.kwargs):
         self.fn = fn
         self.args = args
@@ -39,24 +39,24 @@ class RepeatTimer(Thread, ABC):
         self.__interval = interval
         self.__event = Event()
         self.__lock = Lock()
-        self.__enter_runs = list[Runnable]()
-        self.__exit_runs = list[Runnable]()
+        self.__enter_hooks = list[Hook]()
+        self.__exit_hooks = list[Hook]()
 
     def __enter__(self):
-        for enter in self.__enter_runs:
-            enter.run()
+        for hook in self.__enter_hooks:
+            hook.run()
 
-        self.__enter_runs.clear()
+        self.__enter_hooks.clear()
         self.before()
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         self.close()
         self.after()
 
-        for exit in self.__exit_runs:
-            exit.run()
+        for hook in self.__exit_hooks:
+            hook.run()
 
-        self.__exit_runs.clear()
+        self.__exit_hooks.clear()
 
         return False
 
@@ -140,7 +140,7 @@ class RepeatTimer(Thread, ABC):
             *args (P.args): Positional arguments passed to ``fn``.
             **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
         """
-        self.__enter_runs.append(Runnable(fn, *args, **kwargs))
+        self.__enter_hooks.append(Hook(fn, *args, **kwargs))
 
     def add_exit_hook(self, fn: Callable[P, R], *args: P.args, **kwargs: P.kwargs):
         """Register a callback to run when leaving the timer context.
@@ -153,4 +153,4 @@ class RepeatTimer(Thread, ABC):
             *args (P.args): Positional arguments passed to ``fn``.
             **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
         """
-        self.__exit_runs.append(Runnable(fn, *args, **kwargs))
+        self.__exit_hooks.append(Hook(fn, *args, **kwargs))
