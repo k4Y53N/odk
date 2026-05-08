@@ -96,14 +96,16 @@ class Flow:
         """
         self.call(skip_keep_alive, Node.close)
 
-    def join(self, skip_keep_alive: bool = True):
+    def join(self, skip_keep_alive: bool = True, timeout: float | None = None):
         """Wait for all nodes in the flow to finish.
 
         Args:
             skip_keep_alive (bool, optional): If True, skip nodes marked as keep_alive.
                 Defaults to True.
+            timeout (float | None, optional): Maximum time in seconds to wait for each
+                node. Defaults to None.
         """
-        self.call(skip_keep_alive, Node.join)
+        self.call(skip_keep_alive, Node.join, timeout)
 
     def is_active(self, skip_keep_alive: bool = True) -> bool:
         """Check whether all nodes in the flow are active.
