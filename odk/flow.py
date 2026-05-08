@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Concatenate, ParamSpec, TypeVar
+from typing import Any, Concatenate, ParamSpec, TypeVar
 
 from .node import Node
 
@@ -51,18 +51,18 @@ class Flow:
     def call(
         self,
         skip_keep_alive: bool,
-        method: Callable[Concatenate[Node, ...]],
-        *args,
-        **kwargs,
+        method: Callable[Concatenate[Node, P], Any],
+        *args: P.args,
+        **kwargs: P.kwargs,
     ) -> bool:
         """Invoke a method on each node in the flow.
 
         Args:
             skip_keep_alive (bool): If True, skip nodes marked as keep_alive.
-            method (Callable[Concatenate[Node, ...]]): The node method to call on each
+            method (Callable[Concatenate[Node, P], Any]): The node method to call on each
                 node.
-            *args: Positional arguments to pass to the method.
-            **kwargs: Keyword arguments to pass to the method.
+            *args (P.args): Positional arguments to pass to the method.
+            **kwargs (P.kwargs): Keyword arguments to pass to the method.
 
         Returns:
             bool: True if all invoked methods returned truthy values.
