@@ -1,7 +1,8 @@
 from typing import Protocol
 
-from ..detector import ObjectDetector, ObjectDetectResult
-from ..image import Image
+import numpy as np
+from numpy.typing import NDArray
+
 from .option import TrackOption
 from .result import ObjectTrackResult
 from .tracker import Tracker
@@ -11,7 +12,20 @@ __all__ = [
 ]
 
 
-class ObjectDetectAPI(Protocol):
+class Image(Protocol):
+    data: NDArray[np.uint8]
+
+
+class ObjectDetectResult(Protocol):
+    bboxes: NDArray[np.float32]
+    classes: NDArray[np.uint16]
+    scores: NDArray[np.float32]
+    class_label: list[str]
+
+    def class_filter(self, classes: NDArray[np.int_]) -> 'ObjectDetectResult': ...
+
+
+class ObjectDetectFunction(Protocol):
     def __call__(
         self,
         image: Image,
@@ -22,12 +36,40 @@ class ObjectDetectAPI(Protocol):
 
 
 class ObjectTracker:
-    def __init__(self, fn: ObjectDetectAPI, option: TrackOption | None = None):
+    def __init__(
+        self,
+        fn: ObjectDetectFunction | None = None,
+        option: TrackOption | None = None,
+    ):
+        """Create an ObjectTracker with an optional detection function.
+
+        Args:
+            fn (ObjectDetectFunction | None, optional): Detection function used for
+                automatic tracking via `track()`. If None, only manual `update()` is
+                available. Defaults to None.
+            option (TrackOption | None, optional): Tracking configuration. If None,
+                default TrackOption settings are used. Defaults to None.
+        """
         if option is None:
             option = TrackOption()
 
-        self._fn: ObjectDetectAPI = fn
+        self._fn: ObjectDetectFunction | None = fn
         self._tracker: Tracker = option.create()
+
+    @classmethod
+    def manual(cls, option: TrackOption | None = None) -> 'ObjectTracker':
+        """Create an ObjectTracker without a detection function.
+
+        Use this when you want to feed detection results manually via `update()`.
+
+        Args:
+            option (TrackOption | None, optional): Tracking configuration. If None,
+                default TrackOption settings are used. Defaults to None.
+
+        Returns:
+            ObjectTracker: A tracker instance that only supports manual `update()` calls.
+        """
+        return ObjectTracker(None, option)
 
     @classmethod
     def from_config_path(
@@ -35,48 +77,61 @@ class ObjectTracker:
         path: str,
         option: TrackOption | None = None,
     ) -> 'ObjectTracker':
-        """Create an ObjectTracker from an object detector configuration file path.
+        """Create an ObjectTracker from a detector configuration file.
+
+        Loads an ObjectDetector from the given config path and uses its
+        `detect` method as the tracking detection function.
 
         Args:
-            path (str): Path to the detector configuration file.
-            option (TrackOption | None, optional): Tracking options. Defaults to None.
+            path (str): Path to the detector configuration JSON file.
+            option (TrackOption | None, optional): Tracking configuration. If None,
+                default TrackOption settings are used. Defaults to None.
 
         Returns:
-            ObjectTracker: An instance of ObjectTracker initialized with the detector
-                and options.
+            ObjectTracker: A tracker instance with automatic detection via `track()`.
         """
+        from ..detector import ObjectDetector
+
         detector = ObjectDetector.from_config_path(path)
         return ObjectTracker(detector.detect, option)
 
     @classmethod
-    def from_object_detector(
+    def from_detect_fn(
         cls,
-        detector: ObjectDetector,
+        fn: ObjectDetectFunction,
         option: TrackOption | None = None,
     ) -> 'ObjectTracker':
-        """Create an ObjectTracker from an existing ObjectDetector instance.
+        """Create an ObjectTracker from an existing detection function.
 
         Args:
-            detector (ObjectDetector): An instance of ObjectDetector.
-            option (TrackOption | None, optional): Tracking options. Defaults to None.
+            fn (ObjectDetectFunction): Detection function to use for automatic
+                tracking via `track()`.
+            option (TrackOption | None, optional): Tracking configuration. If None,
+                default TrackOption settings are used. Defaults to None.
 
         Returns:
-            ObjectTracker: An instance of ObjectTracker initialized with the detector
-                and options.
+            ObjectTracker: A tracker instance with automatic detection via `track()`.
         """
-        return ObjectTracker(detector.detect, option)
+        return ObjectTracker(fn, option)
 
     def update(self, result: ObjectDetectResult) -> ObjectTrackResult:
-        """Update the tracker with detection results without running detection.
+        """Assign track IDs to pre-computed detection results.
 
         Args:
-            result (ObjectDetectResult): The detection results to feed into the
-                tracker.
+            result (ObjectDetectResult): Detection results containing bboxes,
+                classes, scores, and class labels.
 
         Returns:
-            ObjectTrackResult: The tracking results with assigned track IDs.
+            ObjectTrackResult: Detection results with assigned track IDs.
         """
-        return self._tracker.track(result)
+        track_ids = self._tracker.update(result.bboxes, result.classes, result.scores)
+        return ObjectTrackResult(
+            bboxes=result.bboxes,
+            track_ids=track_ids,
+            classes=result.classes,
+            scores=result.scores,
+            class_label=result.class_label,
+        )
 
     def track(
         self,
@@ -84,24 +139,38 @@ class ObjectTracker:
         score_threshold: float = 0.5,
         iou_threshold: float = 0.5,
         nms_mix_classes: bool = True,
-        class_mask: list[int] | None = None,
+        class_mask: NDArray[np.int_] | None = None,
     ) -> ObjectTrackResult:
-        """Run object detection and tracking on an image.
+        """Detect objects in an image and track them across frames.
+
+        Runs the detection function on the image and assigns persistent
+        track IDs to detected objects. Requires a detection function to
+        have been provided at construction time.
 
         Args:
-            image (Image): The input image to process.
-            score_threshold (float, optional): Minimum score threshold for detections.
-                Defaults to 0.5.
-            iou_threshold (float, optional): IOU threshold for non-maximum suppression.
-                Defaults to 0.5.
-            nms_mix_classes (bool, optional): Whether to mix classes in NMS.
-                Defaults to True.
-            class_mask (list[int] | None, optional): List of class indices to filter
-                detections. Defaults to None.
+            image (Image): Input image to run detection on.
+            score_threshold (float, optional): Minimum confidence score for
+                detections. Defaults to 0.5.
+            iou_threshold (float, optional): IoU threshold for non-maximum
+                suppression. Defaults to 0.5.
+            nms_mix_classes (bool, optional): Whether to apply NMS across all
+                classes together. Defaults to True.
+            class_mask (NDArray[np.int_] | None, optional): Class indices to
+                keep. If provided, filters detections to only these classes.
+                Defaults to None.
+
+        Raises:
+            RuntimeError: If no detection function was provided.
 
         Returns:
-            ObjectTrackResult: The result of object tracking.
+            ObjectTrackResult: Detection results with assigned track IDs.
         """
+        if self._fn is None:
+            raise RuntimeError(
+                "Cannot track without a detector. "
+                "Provide one via from_config_path() or from_detect_fn()."
+            )
+
         result = self._fn(
             image=image,
             score_threshold=score_threshold,
@@ -113,35 +182,3 @@ class ObjectTracker:
             result = result.class_filter(class_mask)
 
         return self.update(result)
-
-    def detect(
-        self,
-        image: Image,
-        score_threshold: float = 0.5,
-        iou_threshold: float = 0.5,
-        nms_mix_classes: bool = True,
-        class_mask: list[int] | None = None,
-    ) -> ObjectTrackResult:
-        """Detect and track objects in an image (alias for track).
-
-        Args:
-            image (Image): The input image to process.
-            score_threshold (float, optional): Minimum score threshold for detections.
-                Defaults to 0.5.
-            iou_threshold (float, optional): IOU threshold for non-maximum suppression.
-                Defaults to 0.5.
-            nms_mix_classes (bool, optional): Whether to mix classes in NMS.
-                Defaults to True.
-            class_mask (list[int] | None, optional): List of class indices to filter detections.
-                Defaults to None.
-
-        Returns:
-            ObjectTrackResult: The result of object tracking.
-        """
-        return self.track(
-            image=image,
-            score_threshold=score_threshold,
-            iou_threshold=iou_threshold,
-            nms_mix_classes=nms_mix_classes,
-            class_mask=class_mask,
-        )
