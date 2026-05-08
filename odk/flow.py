@@ -50,7 +50,7 @@ class Flow:
 
     def call(
         self,
-        skip_keep_alive: bool,
+        skip_standalone: bool,
         method: Callable[Concatenate[Node, P], Any],
         *args: P.args,
         **kwargs: P.kwargs,
@@ -58,7 +58,7 @@ class Flow:
         """Invoke a method on each node in the flow.
 
         Args:
-            skip_keep_alive (bool): If True, skip nodes marked as keep_alive.
+            skip_standalone (bool): If True, skip nodes marked as standalone.
             method (Callable[Concatenate[Node, P], Any]): The node method to call on each
                 node.
             *args (P.args): Positional arguments to pass to the method.
@@ -70,7 +70,7 @@ class Flow:
         flag = True
 
         for node in self.nodes:
-            if skip_keep_alive and node.keep_alive:
+            if skip_standalone and node.standalone:
                 continue
 
             ret = method(node, *args, **kwargs)
@@ -78,44 +78,44 @@ class Flow:
 
         return flag
 
-    def start(self, skip_keep_alive: bool = True):
+    def start(self, skip_standalone: bool = True):
         """Start all nodes in the flow.
 
         Args:
-            skip_keep_alive (bool, optional): If True, skip nodes marked as keep_alive.
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
                 Defaults to True.
         """
-        self.call(skip_keep_alive, Node.start)
+        self.call(skip_standalone, Node.start)
 
-    def close(self, skip_keep_alive: bool = True):
+    def close(self, skip_standalone: bool = True):
         """Close all nodes in the flow.
 
         Args:
-            skip_keep_alive (bool, optional): If True, skip nodes marked as keep_alive.
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
                 Defaults to True.
         """
-        self.call(skip_keep_alive, Node.close)
+        self.call(skip_standalone, Node.close)
 
-    def join(self, skip_keep_alive: bool = True, timeout: float | None = None):
+    def join(self, skip_standalone: bool = True, timeout: float | None = None):
         """Wait for all nodes in the flow to finish.
 
         Args:
-            skip_keep_alive (bool, optional): If True, skip nodes marked as keep_alive.
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
                 Defaults to True.
             timeout (float | None, optional): Maximum time in seconds to wait for each
                 node. Defaults to None.
         """
-        self.call(skip_keep_alive, Node.join, timeout)
+        self.call(skip_standalone, Node.join, timeout)
 
     def is_active(
         self,
-        skip_keep_alive: bool = True,
+        skip_standalone: bool = True,
         timeout: float | None = 0,
     ) -> bool:
         """Check whether all nodes in the flow are active.
 
         Args:
-            skip_keep_alive (bool, optional): If True, skip nodes marked as keep_alive.
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
                 Defaults to True.
             timeout (float | None, optional): Seconds to wait for a stop signal on each
                 node. If ``None``, blocks indefinitely. Defaults to 0.
@@ -123,45 +123,45 @@ class Flow:
         Returns:
             bool: True if all checked nodes are active.
         """
-        return self.call(skip_keep_alive, Node.is_active, timeout)
+        return self.call(skip_standalone, Node.is_active, timeout)
 
-    def add_enter_hook(self, hook: Hook, skip_keep_alive: bool = True):
+    def add_enter_hook(self, hook: Hook, skip_standalone: bool = True):
         """Register an enter hook on each node in the flow.
 
         Args:
             hook (Hook): The hook to register, called when a node starts processing.
-            skip_keep_alive (bool, optional): If True, skip nodes marked as keep_alive.
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
                 Defaults to True.
         """
         self.call(
-            skip_keep_alive,
+            skip_standalone,
             Node.add_enter_hook,
             hook.fn,
             *hook.args,
             **hook.kwargs,
         )
 
-    def add_exit_hook(self, hook: Hook, skip_keep_alive: bool = True):
+    def add_exit_hook(self, hook: Hook, skip_standalone: bool = True):
         """Register an exit hook on each node in the flow.
 
         Args:
             hook (Hook): The hook to register, called when a node finishes processing.
-            skip_keep_alive (bool, optional): If True, skip nodes marked as keep_alive.
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
                 Defaults to True.
         """
         self.call(
-            skip_keep_alive,
+            skip_standalone,
             Node.add_exit_hook,
             hook.fn,
             *hook.args,
             **hook.kwargs,
         )
 
-    def add_self_close_hook(self, skip_keep_alive: bool = True):
+    def add_self_close_hook(self, skip_standalone: bool = True):
         """Register an exit hook that closes the entire flow when any node exits.
 
         Args:
-            skip_keep_alive (bool, optional): If True, skip nodes marked as keep_alive.
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
                 Defaults to True.
         """
-        self.add_exit_hook(Hook(self.close, skip_keep_alive), skip_keep_alive)
+        self.add_exit_hook(Hook(self.close, skip_standalone), skip_standalone)

@@ -20,7 +20,7 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
         buff_size: int = 3,
         timeout: float | None = 1,
         retry: int | float = 0,
-        keep_alive: bool = False,
+        standalone: bool = False,
         name: str = 'NODE',
         interval: int = 0,
         *args,
@@ -36,7 +36,7 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
                 Defaults to 1.
             retry (int | float, optional): Maximum consecutive underflow or
                 overflow attempts before stopping. Defaults to 0.
-            keep_alive (bool, optional): If ``True``, do not stop when
+            standalone (bool, optional): If ``True``, do not stop when
                 upstream/downstream stopped. Defaults to False.
             name (str, optional): Display name used in logs and ``__str__``.
                 Defaults to 'NODE'.
@@ -55,7 +55,7 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
         self.__downstream_nodes = list['Node[OUT, Any]']()
         self.__timeout = timeout
         self.__retry = retry
-        self.__keep_alive = keep_alive
+        self.__standalone = standalone
         self.__underflow: int = 0
         self.__overflow: int = 0
 
@@ -113,13 +113,13 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
         """
 
     @property
-    def keep_alive(self) -> bool:
+    def standalone(self) -> bool:
         """Whether queue underflow/overflow should not stop the node.
 
         Returns:
             bool: ``True`` when keep-alive mode is enabled.
         """
-        return self.__keep_alive
+        return self.__standalone
 
     @property
     def logger(self) -> log.Logger:
@@ -155,7 +155,7 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
 
             return item
         except Empty:
-            if self.keep_alive:
+            if self.standalone:
                 return
 
             if not self.is_upstream_active():
@@ -187,7 +187,7 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
             self.downstream.put(item, block=True, timeout=self.__timeout)
             self.__overflow = 0
         except Full:
-            if self.keep_alive:
+            if self.standalone:
                 return
 
             if not self.is_downstream_active():
