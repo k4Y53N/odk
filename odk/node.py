@@ -89,6 +89,15 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
         self.__or__(other)
         return self
 
+    def __enter__(self):
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        super().__exit__(exc_type, exc_val, exc_tb)
+        self.release()
+
+        return False
+
     @abstractmethod
     def process(self, item: IN | None) -> OUT | None:
         """Transform one input item into an output item.
@@ -123,8 +132,7 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
 
     def before(self): ...
 
-    def after(self):
-        self.release()
+    def after(self): ...
 
     def start(self) -> None:
         if self.upstream is None and self.downstream is None:
