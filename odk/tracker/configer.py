@@ -4,12 +4,12 @@ from typing import Literal
 from .tracker import Tracker
 
 __all__ = [
-    'TrackOption',
+    'ObjectTrackConfiger',
 ]
 
 
 @dataclass(slots=True, kw_only=True)
-class TrackOption:
+class ObjectTrackConfiger:
     type: Literal['sort'] = 'sort'
     timeout: int = 10
     sort_threshold: float = 0.3
@@ -33,4 +33,4 @@ class TrackOption:
                 threshold=self.sort_threshold,
             )
 
-        raise NotImplementedError(f'tracker_type not suppored: {self.type}')
+        raise NotImplementedError(f'Tracker type not suppored: {self.type}')

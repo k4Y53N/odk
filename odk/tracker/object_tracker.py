@@ -3,7 +3,7 @@ from typing import Protocol
 import numpy as np
 from numpy.typing import NDArray
 
-from .option import TrackOption
+from .configer import ObjectTrackConfiger
 from .result import ObjectTrackResult
 from .tracker import Tracker
 
@@ -39,7 +39,7 @@ class ObjectTracker:
     def __init__(
         self,
         fn: ObjectDetectFunction | None = None,
-        option: TrackOption | None = None,
+        configer: ObjectTrackConfiger | None = None,
     ):
         """Create an ObjectTracker with an optional detection function.
 
@@ -47,35 +47,36 @@ class ObjectTracker:
             fn (ObjectDetectFunction | None, optional): Detection function used for
                 automatic tracking via `track()`. If None, only manual `update()` is
                 available. Defaults to None.
-            option (TrackOption | None, optional): Tracking configuration. If None,
-                default TrackOption settings are used. Defaults to None.
+            configer (ObjectTrackConfiger | None, optional): Tracking configuration. If
+                None, default ObjectTrackConfiger settings are used. Defaults to None.
         """
-        if option is None:
-            option = TrackOption()
+        if configer is None:
+            configer = ObjectTrackConfiger()
 
         self._fn: ObjectDetectFunction | None = fn
-        self._tracker: Tracker = option.create()
+        self._tracker: Tracker = configer.create()
 
     @classmethod
-    def manual(cls, option: TrackOption | None = None) -> 'ObjectTracker':
+    def manual(cls, config: ObjectTrackConfiger | None = None) -> 'ObjectTracker':
         """Create an ObjectTracker without a detection function.
 
         Use this when you want to feed detection results manually via `update()`.
 
         Args:
-            option (TrackOption | None, optional): Tracking configuration. If None,
-                default TrackOption settings are used. Defaults to None.
+            option (ObjectTrackConfiger | None, optional): Tracking configuration. If
+                None, default ObjectTrackConfiger settings are used. Defaults to None.
 
         Returns:
-            ObjectTracker: A tracker instance that only supports manual `update()` calls.
+            ObjectTracker: A tracker instance that only supports manual `update()`
+                calls.
         """
-        return ObjectTracker(None, option)
+        return ObjectTracker(None, config)
 
     @classmethod
     def from_config_path(
         cls,
         path: str,
-        option: TrackOption | None = None,
+        configer: ObjectTrackConfiger | None = None,
     ) -> 'ObjectTracker':
         """Create an ObjectTracker from a detector configuration file.
 
@@ -84,8 +85,8 @@ class ObjectTracker:
 
         Args:
             path (str): Path to the detector configuration JSON file.
-            option (TrackOption | None, optional): Tracking configuration. If None,
-                default TrackOption settings are used. Defaults to None.
+            configer (ObjectTrackConfiger | None, optional): Tracking configuration.If
+                None, default ObjectTrackConfiger settings are used. Defaults to None.
 
         Returns:
             ObjectTracker: A tracker instance with automatic detection via `track()`.
@@ -93,26 +94,26 @@ class ObjectTracker:
         from ..detector import ObjectDetector
 
         detector = ObjectDetector.from_config_path(path)
-        return ObjectTracker(detector.detect, option)
+        return ObjectTracker(detector.detect, configer)
 
     @classmethod
     def from_detect_fn(
         cls,
         fn: ObjectDetectFunction,
-        option: TrackOption | None = None,
+        configer: ObjectTrackConfiger | None = None,
     ) -> 'ObjectTracker':
         """Create an ObjectTracker from an existing detection function.
 
         Args:
             fn (ObjectDetectFunction): Detection function to use for automatic
                 tracking via `track()`.
-            option (TrackOption | None, optional): Tracking configuration. If None,
-                default TrackOption settings are used. Defaults to None.
+            configer (ObjectTrackConfiger | None, optional): Tracking configuration.If
+                None, default ObjectTrackConfiger settings are used. Defaults to None.
 
         Returns:
             ObjectTracker: A tracker instance with automatic detection via `track()`.
         """
-        return ObjectTracker(fn, option)
+        return ObjectTracker(fn, configer)
 
     def update(self, result: ObjectDetectResult) -> ObjectTrackResult:
         """Assign track IDs to pre-computed detection results.
@@ -143,9 +144,9 @@ class ObjectTracker:
     ) -> ObjectTrackResult:
         """Detect objects in an image and track them across frames.
 
-        Runs the detection function on the image and assigns persistent
-        track IDs to detected objects. Requires a detection function to
-        have been provided at construction time.
+        Runs the detection function on the image and assigns persistent track IDs to
+        detected objects. Requires a detection function to have been provided at
+        construction time.
 
         Args:
             image (Image): Input image to run detection on.
