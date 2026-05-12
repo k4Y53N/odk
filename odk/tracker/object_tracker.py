@@ -63,7 +63,7 @@ class ObjectTracker:
         Use this when you want to feed detection results manually via `update()`.
 
         Args:
-            option (ObjectTrackConfiger | None, optional): Tracking configuration. If
+            config (ObjectTrackConfiger | None, optional): Tracking configuration. If
                 None, default ObjectTrackConfiger settings are used. Defaults to None.
 
         Returns:
