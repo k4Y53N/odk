@@ -7,16 +7,16 @@ from numpy.typing import NDArray
 from .decoder import Decoder
 from .encoder import Encoder
 from .engine import lazy_engine
-from .types import ConfigT, OptionT, ResultT
+from .types import ConfigT, ParamsT, ResultT
 
 __all__ = [
     'Detector',
 ]
 
-Self = TypeVar('Self', bound='Detector[ConfigT, OptionT, ResultT]')
+Self = TypeVar('Self', bound='Detector[ConfigT, ParamsT, ResultT]')
 
 
-class Detector(ABC, Generic[ConfigT, OptionT, ResultT]):
+class Detector(ABC, Generic[ConfigT, ParamsT, ResultT]):
     def __init__(self, configer: ConfigT):
         self._engine = lazy_engine(configer)
         self._encoder = self.get_encoder_class(configer).from_engine(self._engine)
@@ -35,7 +35,7 @@ class Detector(ABC, Generic[ConfigT, OptionT, ResultT]):
 
     @classmethod
     @abstractmethod
-    def get_encoder_class(cls, configer: ConfigT) -> type[Encoder[OptionT]]:
+    def get_encoder_class(cls, configer: ConfigT) -> type[Encoder[ParamsT]]:
         """Return the encoder class used for input preprocessing.
 
         Args:
@@ -43,13 +43,13 @@ class Detector(ABC, Generic[ConfigT, OptionT, ResultT]):
                 encoder variant is selected.
 
         Returns:
-            type[Encoder[OptionT]]: The encoder class responsible for transforming raw
+            type[Encoder[ParamsT]]: The encoder class responsible for transforming raw
                 inputs into model-ready tensors.
         """
 
     @classmethod
     @abstractmethod
-    def get_decoder_class(cls, configer: ConfigT) -> type[Decoder[OptionT, ResultT]]:
+    def get_decoder_class(cls, configer: ConfigT) -> type[Decoder[ParamsT, ResultT]]:
         """Return the decoder class used for output postprocessing.
 
         Args:
@@ -57,7 +57,7 @@ class Detector(ABC, Generic[ConfigT, OptionT, ResultT]):
                 decoder variant is selected.
 
         Returns:
-            type[Decoder[OptionT, ResultT]]: The decoder class responsible for
+            type[Decoder[ParamsT, ResultT]]: The decoder class responsible for
                 converting raw model outputs into structured results.
         """
 
@@ -78,7 +78,7 @@ class Detector(ABC, Generic[ConfigT, OptionT, ResultT]):
         configer = cls.get_configer_class().from_config_path(path)
         return cls(configer)
 
-    def infer(self, origin: Sequence[NDArray], option: OptionT) -> ResultT:
+    def infer(self, origin: Sequence[NDArray], params: ParamsT) -> ResultT:
         """Run the full detection pipeline: encode, infer, and decode.
 
         Preprocesses the raw inputs through the encoder, runs model inference via the
@@ -86,18 +86,18 @@ class Detector(ABC, Generic[ConfigT, OptionT, ResultT]):
 
         Args:
             origin (Sequence[NDArray]): Raw input arrays before any preprocessing.
-            option (OptionT): Options controlling encoding and decoding behaviour for
+            params (ParamsT): Parmas controlling encoding and decoding behaviour for
                 this inference call.
 
         Returns:
             ResultT: Structured results produced by the decoder.
         """
-        input_tensors = self._encoder.encode(origin_input=origin, option=option)
+        input_tensors = self._encoder.encode(origin_input=origin, params=params)
         model_output = self._engine.infer(input_tensors=input_tensors)
         result = self._decoder.decode(
             origin_input=origin,
             model_output=model_output,
-            option=option,
+            params=params,
         )
 
         return result

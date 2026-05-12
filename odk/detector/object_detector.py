@@ -10,15 +10,15 @@ from .configer import ObjectDetectConfiger, Version
 from .decoder import Decoder, yolo_decoder
 from .detector import Detector
 from .encoder import ImageEncoder
-from .option import ObjectDetectOption
+from .params import ObjectDetectParams
 from .result import ObjectDetectResult
 
 __all__ = [
     'ObjectDetector',
 ]
 
-BASE = Detector[ObjectDetectConfiger, ObjectDetectOption, list[ObjectDetectResult]]
-DECODER_MAP: dict[Version, Decoder[ObjectDetectOption, list[ObjectDetectResult]]] = {
+BASE = Detector[ObjectDetectConfiger, ObjectDetectParams, list[ObjectDetectResult]]
+DECODER_MAP: dict[Version, Decoder[ObjectDetectParams, list[ObjectDetectResult]]] = {
     Version.V4: yolo_decoder.Yolov4Decoder,
     Version.V7: yolo_decoder.Yolov7Decoder,
     Version.V8: yolo_decoder.Yolov8Decoder,
@@ -114,7 +114,7 @@ class ObjectDetector(BASE):
         if not len(images):
             return []
 
-        option = ObjectDetectOption(
+        params = ObjectDetectParams(
             class_label=self.class_label,
             score_threshold=score_threshold,
             iou_threshold=iou_threshold,
@@ -125,8 +125,8 @@ class ObjectDetector(BASE):
             results = list[ObjectDetectResult]()
 
             for batch_images in batched(images, batch_size):
-                results.extend(self.infer(origin=batch_images, option=option))
+                results.extend(self.infer(origin=batch_images, params=params))
 
             return results
 
-        return self.infer(origin=images, option=option)
+        return self.infer(origin=images, params=params)
