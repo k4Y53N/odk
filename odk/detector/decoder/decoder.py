@@ -5,17 +5,17 @@ from typing import Generic
 from numpy.typing import NDArray
 
 from ..engine import Engine
-from ..types import OptionT, ResultT
+from ..types import ParamsT, ResultT
 
 __all__ = [
     'Decoder',
 ]
 
 
-class Decoder(ABC, Generic[OptionT, ResultT]):
+class Decoder(ABC, Generic[ParamsT, ResultT]):
     @classmethod
     @abstractmethod
-    def from_engine(cls, engine: Engine) -> 'Decoder[OptionT, ResultT]':
+    def from_engine(cls, engine: Engine) -> 'Decoder[ParamsT, ResultT]':
         """Load and initialize a decoder from the given engine.
 
         Args:
@@ -23,7 +23,7 @@ class Decoder(ABC, Generic[OptionT, ResultT]):
                 metadata for configuring the decoder.
 
         Returns:
-            Decoder[OptionT, ResultT]: A configured decoder instance ready to decode
+            Decoder[ParamsT, ResultT]: A configured decoder instance ready to decode
                 model outputs.
         """
 
@@ -32,14 +32,14 @@ class Decoder(ABC, Generic[OptionT, ResultT]):
         self,
         origin_input: Sequence[NDArray],
         model_output: Sequence[NDArray],
-        option: OptionT,
+        params: ParamsT,
     ) -> ResultT:
         """Decode raw model outputs into structured results.
 
         Args:
             origin_input (Sequence[NDArray]): The original inputs before preprocessing.
             model_output (Sequence[NDArray]): The raw output tensors from the inference engine.
-            option (OptionT): Options that control the decoding behavior.
+            params (ParamsT): Params that control the decoding behavior.
 
         Returns:
             ResultT: The decoded results.

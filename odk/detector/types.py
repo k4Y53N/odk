@@ -4,10 +4,10 @@ from .configer import ModelConfiger
 
 __all__ = [
     'ConfigT',
-    'OptionT',
+    'ParamsT',
     'ResultT',
 ]
 
 ConfigT = TypeVar('ConfigT', bound=ModelConfiger)
-OptionT = TypeVar('OptionT')
+ParamsT = TypeVar('ParamsT')
 ResultT = TypeVar('ResultT')

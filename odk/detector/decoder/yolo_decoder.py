@@ -5,7 +5,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..engine import Engine
-from ..option import ObjectDetectOption
+from ..params import ObjectDetectParams
 from ..result import ObjectDetectResult
 from .decoder import Decoder
 from .nms import NMS, batch_nms
@@ -65,7 +65,7 @@ def xyxy_to_xywh(bboxes: NDArray[np.float32]) -> NDArray[np.float32]:
     return bboxes
 
 
-class YoloDecoder(Decoder[ObjectDetectOption, list[ObjectDetectResult]], ABC):
+class YoloDecoder(Decoder[ObjectDetectParams, list[ObjectDetectResult]], ABC):
     def __init__(self, height: int, width: int):
         self.height: int = height
         self.width: int = width
@@ -81,24 +81,24 @@ class YoloDecoder(Decoder[ObjectDetectOption, list[ObjectDetectResult]], ABC):
         self,
         origin_input: Sequence[NDArray],
         model_output: Sequence[NDArray],
-        option: ObjectDetectOption,
+        params: ObjectDetectParams,
     ):
         batch_bboxes, batch_scores = self._get_bboxes_and_scores(
             model_output=model_output,
-            score_threshold=option.score_threshold,
+            score_threshold=params.score_threshold,
         )
         nmses = batch_nms(
             batch_bboxes=batch_bboxes,
             batch_scores=batch_scores,
-            score_threshold=option.score_threshold,
-            iou_threshold=option.iou_threshold,
-            nms_mix_clsses=option.nms_mix_classes,
+            score_threshold=params.score_threshold,
+            iou_threshold=params.iou_threshold,
+            nms_mix_clsses=params.nms_mix_classes,
         )
 
         return self._decode_nms(
             nmses=nmses,
             origin_input=origin_input,
-            class_label=option.class_label,
+            class_label=params.class_label,
         )
 
     @abstractmethod

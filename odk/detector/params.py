@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
 __all__ = [
-    'ObjectDetectOption',
+    'ObjectDetectParams',
 ]
 
 
 @dataclass(slots=True)
-class ObjectDetectOption:
+class ObjectDetectParams:
     class_label: list[str]
     score_threshold: float = 0.5
     iou_threshold: float = 0.5

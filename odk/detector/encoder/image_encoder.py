@@ -33,7 +33,7 @@ class ImageEncoder(Encoder[Any]):
     def encode(
         self,
         origin_input: Sequence[NDArray[np.uint8]],
-        option: Any,
+        params: Any,
     ) -> Sequence[NDArray]:
         tensor = [
             cv2.resize(image, (self.width, self.height)) for image in origin_input
