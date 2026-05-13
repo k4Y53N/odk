@@ -1,6 +1,6 @@
 from typing import Literal
 
-import gstr as g
+from .. import gstr as g
 
 
 def rtsp_to_app(
