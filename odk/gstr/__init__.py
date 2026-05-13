@@ -15,14 +15,14 @@ from .rtsp import *  # noqa
 from .videoconvertscale import *  # noqa
 
 
-@dataclass
+@dataclass(slots=True)
 class VideoRate(GstElement):  # noqa
     drop_only: bool | None = None
 
 
-@dataclass
+@dataclass(slots=True)
 class VideoTestSrc(GstElement): ...  # noqa
 
 
-@dataclass
+@dataclass(slots=True)
 class AutoVideoSink(GstElement): ...  # noqa

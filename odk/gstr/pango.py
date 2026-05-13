@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class TextOverlay(GstElement):
     text: str | None = None
     color: int | None = None
@@ -57,12 +57,12 @@ class TextOverlay(GstElement):
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class ClockOverlay(TextOverlay):
     time_format: str | None = None
 
 
-@dataclass
+@dataclass(slots=True)
 class TimeOverlay(TextOverlay):
     time_mode: (
         Literal[

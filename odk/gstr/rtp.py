@@ -8,9 +8,9 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class RtpH264Pay(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class RtpH264Depay(GstElement): ...

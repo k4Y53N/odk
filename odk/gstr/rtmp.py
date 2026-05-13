@@ -10,21 +10,21 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class RtmpSrc(GstElement):
     location: str
 
 
-@dataclass
+@dataclass(slots=True)
 class RtmpSink(GstElement):
     location: str
 
 
-@dataclass
+@dataclass(slots=True)
 class Rtmp2Src(GstElement):
     location: str
 
 
-@dataclass
+@dataclass(slots=True)
 class Rtmp2Sink(GstElement):
     location: str

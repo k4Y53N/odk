@@ -9,13 +9,13 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class RtspSrc(GstElement):
     location: str
     protocols: Literal['tcp', 'udp', 'udp-mcast' 'tcp+udp-mcast+udp'] | None = None
 
 
-@dataclass
+@dataclass(slots=True)
 class RtspClientSink(GstElement):
     location: str
     protocols: Literal['tcp', 'udp', 'udp-mcast' 'tcp+udp-mcast+udp'] | None = None

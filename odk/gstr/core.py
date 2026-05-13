@@ -15,36 +15,36 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class Queue(GstElement):
     leaky: Literal['no', 'upstream', 'downstream'] | None = None
 
 
-@dataclass
+@dataclass(slots=True)
 class Tee(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class FileSrc(GstElement):
     location: str
 
 
-@dataclass
+@dataclass(slots=True)
 class FileSink(GstElement):
     location: str
 
 
-@dataclass
+@dataclass(slots=True)
 class FDSrc(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class FDSink(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class FakeSrc(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class FakeSink(GstElement): ...

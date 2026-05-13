@@ -12,28 +12,28 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class DecodeBin(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class DecodeBin3(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class UriDecodeBin(GstElement):
     uri: str
 
 
-@dataclass
+@dataclass(slots=True)
 class UriDecodeBin3(GstElement):
     uri: str
 
 
-@dataclass
+@dataclass(slots=True)
 class ParseBin(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class UriSourceBin(GstElement):
     uri: str

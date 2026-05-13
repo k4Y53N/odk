@@ -9,13 +9,13 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class QTMux(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class QTDemux(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class MP4Mux(GstElement): ...

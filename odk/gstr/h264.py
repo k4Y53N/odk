@@ -10,15 +10,15 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class H264Parse(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class AVDec_H264(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class X264Enc(GstElement):
     bitrate: int | None = None
     key_int_max: int | None = None

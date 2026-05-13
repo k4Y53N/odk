@@ -197,7 +197,7 @@ class RawElement(Element):
         return self.properties
 
 
-@dataclass
+@dataclass(slots=True)
 class GstElement(Element):
     def as_element(self, instance: Element | str) -> Element:
         if isinstance(instance, Element):

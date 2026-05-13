@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class AppSrc(GstElement):
     block: bool | None = None
     do_timestamp: bool | None = None
@@ -17,7 +17,7 @@ class AppSrc(GstElement):
     leaky_type: Literal['none', 'upstream', 'downstream'] | None = None
 
 
-@dataclass
+@dataclass(slots=True)
 class AppSink(GstElement):
     drop: bool | None = None
     sync: bool | None = None

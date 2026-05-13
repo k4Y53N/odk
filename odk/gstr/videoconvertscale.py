@@ -9,13 +9,13 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class VideoConvert(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class VideoScale(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class VideoConvertScale(GstElement): ...

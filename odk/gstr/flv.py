@@ -8,9 +8,9 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class FlvMux(GstElement): ...
 
 
-@dataclass
+@dataclass(slots=True)
 class FlvDemux(GstElement): ...

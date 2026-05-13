@@ -19,7 +19,7 @@ class RawCaps(RawElement):
         return ','
 
 
-@dataclass
+@dataclass(slots=True)
 class VideoCaps(GstElement):
     width: int | None = None
     height: int | None = None
@@ -34,12 +34,12 @@ class VideoCaps(GstElement):
         return ','
 
 
-@dataclass
+@dataclass(slots=True)
 class RawVideoCaps(VideoCaps):
     def T(self) -> str:
         return 'video/x-raw'
 
 
-@dataclass
+@dataclass(slots=True)
 class RawVideoBGRCaps(RawVideoCaps):
     format: str = 'BGR'
