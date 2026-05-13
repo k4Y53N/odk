@@ -159,14 +159,6 @@ class ObjectDetectResult:
         """
         return self.add(-x, -y, inplace)
 
-    def plus(self, x: float, y: float, inplace: bool = False) -> 'ObjectDetectResult':
-        """Alias for :meth:`add`."""
-        return self.add(x, y, inplace)
-
-    def minus(self, x: float, y: float, inplace: bool = False) -> 'ObjectDetectResult':
-        """Alias for :meth:`subtract`."""
-        return self.add(-x, -y, inplace)
-
     def multiply(
         self,
         x: float,
