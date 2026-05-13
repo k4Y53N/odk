@@ -96,14 +96,14 @@ class Flow:
         """
         self.call(skip_standalone, Node.close)
 
-    def join(self, skip_standalone: bool = True, timeout: float | None = None):
+    def join(self, timeout: float | None = None, skip_standalone: bool = True):
         """Wait for all nodes in the flow to finish.
 
         Args:
-            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
-                Defaults to True.
             timeout (float | None, optional): Maximum time in seconds to wait for each
                 node. Defaults to None.
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
+                Defaults to True.
         """
         self.call(skip_standalone, Node.join, timeout)
 
@@ -121,16 +121,16 @@ class Flow:
 
     def is_active(
         self,
-        skip_standalone: bool = True,
         timeout: float | None = 0,
+        skip_standalone: bool = True,
     ) -> bool:
         """Check whether all nodes in the flow are active.
 
         Args:
-            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
-                Defaults to True.
             timeout (float | None, optional): Seconds to wait for a stop signal on each
                 node. If ``None``, blocks indefinitely. Defaults to 0.
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
+                Defaults to True.
 
         Returns:
             bool: True if all checked nodes are active.

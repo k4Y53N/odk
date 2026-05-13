@@ -70,7 +70,7 @@ class ObjectTracker:
             ObjectTracker: A tracker instance that only supports manual `update()`
                 calls.
         """
-        return ObjectTracker(None, config)
+        return cls(None, config)
 
     @classmethod
     def from_config_path(
@@ -94,7 +94,7 @@ class ObjectTracker:
         from ..detector import ObjectDetector
 
         detector = ObjectDetector.from_config_path(path)
-        return ObjectTracker(detector.detect, configer)
+        return cls(detector.detect, configer)
 
     @classmethod
     def from_detect_fn(
@@ -113,7 +113,7 @@ class ObjectTracker:
         Returns:
             ObjectTracker: A tracker instance with automatic detection via `track()`.
         """
-        return ObjectTracker(fn, configer)
+        return cls(fn, configer)
 
     def update(self, result: ObjectDetectResult) -> ObjectTrackResult:
         """Assign track IDs to pre-computed detection results.

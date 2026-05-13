@@ -195,14 +195,6 @@ class ObjectTrackResult:
         """
         return self.add(-x, -y, inplace)
 
-    def plus(self, x: float, y: float, inplace: bool = False) -> 'ObjectTrackResult':
-        """Alias for :meth:`add`."""
-        return self.add(x, y, inplace)
-
-    def minus(self, x: float, y: float, inplace: bool = False) -> 'ObjectTrackResult':
-        """Alias for :meth:`subtract`."""
-        return self.add(-x, -y, inplace)
-
     def multiply(
         self,
         x: float,

@@ -34,7 +34,6 @@ class Video:
         if image := self.read():
             return image
 
-        self.release()
         raise StopIteration()
 
     @classmethod
