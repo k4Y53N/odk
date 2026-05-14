@@ -22,8 +22,8 @@ class Element(ABC):
     def __or__(self, other: 'Element | str') -> 'Element':
         other = self.as_element(other)
 
-        if len(self.sinks):
-            self.sinks[0].__or__(other)
+        if len(self._sinks):
+            self._sinks[0].__or__(other)
         else:
             self.__mul__(other)
 
@@ -31,8 +31,8 @@ class Element(ABC):
 
     def __mul__(self, other: 'Element | str') -> 'Element':
         other = self.as_element(other)
-        self.sinks.append(other)
-        other.srcs.append(self)
+        self._sinks.append(other)
+        other._srcs.append(self)
 
         return self
 
@@ -53,23 +53,26 @@ class Element(ABC):
         return self.T().upper()
 
     @property
-    def srcs(self) -> LE:
+    def _srcs(self) -> LE:
         if self.__srcs is None:
             self.__srcs = LE()
 
         return self.__srcs
 
     @property
-    def sinks(self) -> LE:
+    def _sinks(self) -> LE:
         if self.__sinks is None:
             self.__sinks = LE()
 
         return self.__sinks
 
     def print(self):
-        print(self.build())
+        print(self._build())
 
-    def build(
+    def build(self):
+        return self._build()
+
+    def _build(
         self,
         skip_element: Union['Element', None] = None,
         pool: set[str] | None = None,
@@ -79,20 +82,20 @@ class Element(ABC):
         self_element = self.__build_element()
         element_appeneded = False
 
-        if self.is_require_name():
-            self_element = f'{self_element} name={self.fetch_name(pool)}'
+        if self._is_require_name():
+            self_element = f'{self_element} name={self._fetch_name(pool)}'
 
-        for src in self.srcs:
+        for src in self._srcs:
             if src is skip_element:
                 continue
 
-            src_element = f'{src.build(self, pool)}'
+            src_element = f'{src._build(self, pool)}'
 
-            if src.has_multi_sink():
-                src_element = f'{src_element} {src.fetch_name(pool)}.'
+            if src._has_multi_sink():
+                src_element = f'{src_element} {src._fetch_name(pool)}.'
 
-            if self.has_multi_src():
-                links.append(f'{src_element} ! {self.fetch_name(pool)}.')
+            if self._has_multi_src():
+                links.append(f'{src_element} ! {self._fetch_name(pool)}.')
                 continue
 
             links.append(f'{src_element} ! {self_element}')
@@ -101,28 +104,28 @@ class Element(ABC):
         if not element_appeneded:
             links.append(self_element)
 
-        for sink in self.sinks:
+        for sink in self._sinks:
             if sink is skip_element:
                 continue
 
-            if not self.has_multi_sink():
-                links.append(f'! {sink.build(self, pool)}')
+            if not self._has_multi_sink():
+                links.append(f'! {sink._build(self, pool)}')
                 continue
 
-            links.append(f'{self.fetch_name(pool)}. ! {sink.build(self, pool)}')
+            links.append(f'{self._fetch_name(pool)}. ! {sink._build(self, pool)}')
 
         return ' '.join(links)
 
-    def has_multi_src(self) -> bool:
-        return len(self.srcs) > 1
+    def _has_multi_src(self) -> bool:
+        return len(self._srcs) > 1
 
-    def has_multi_sink(self) -> bool:
-        return len(self.sinks) > 1
+    def _has_multi_sink(self) -> bool:
+        return len(self._sinks) > 1
 
-    def is_require_name(self) -> bool:
-        return self.has_multi_src() or self.has_multi_sink()
+    def _is_require_name(self) -> bool:
+        return self._has_multi_src() or self._has_multi_sink()
 
-    def fetch_name(self, name_pool: set[str]) -> str:
+    def _fetch_name(self, name_pool: set[str]) -> str:
         if self.__cache_name is not None:
             return self.__cache_name
 
