@@ -10,15 +10,15 @@ __all__ = [
 class Video:
     """A wrapper around OpenCV VideoCapture for reading video frames."""
 
-    def __init__(self, sorurce: str, api: int):
+    def __init__(self, source: str, api: int):
         """Initialize a Video instance.
 
         Args:
             source (str): The video source.
             api (int): The OpenCV backend API identifier.
         """
-        self.__capture = cv2.VideoCapture(sorurce, api)
-        self.source: str = sorurce
+        self.__capture = cv2.VideoCapture(source, api)
+        self.source: str = source
         self.api: int = api
 
     def __len__(self):
