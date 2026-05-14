@@ -34,15 +34,6 @@ class ObjectTrackInfo:
     def bottom(self) -> float:
         return self.bbox[3]
 
-    @property
-    def bbox_id(self) -> int:
-        """Deprecated alias for :attr:`track_id`."""
-        return self.track_id
-
-    @bbox_id.setter
-    def bbox_id(self, id: int):
-        self.track_id = id
-
 
 @dataclass(slots=True)
 class ObjectTrackResult:
@@ -72,15 +63,6 @@ class ObjectTrackResult:
             score=self.scores[index],
             label=self.class_label[class_id],
         )
-
-    @property
-    def bbox_ids(self):
-        """Deprecated alias for :attr:`track_ids`."""
-        return self.track_ids
-
-    @bbox_ids.setter
-    def bbox_ids(self, track_ids: NDArray[np.uint64]):
-        self.track_ids = track_ids
 
     def copy(self) -> 'ObjectTrackResult':
         """Return a deep copy of this result.

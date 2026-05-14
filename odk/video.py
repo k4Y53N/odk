@@ -10,16 +10,16 @@ __all__ = [
 class Video:
     """A wrapper around OpenCV VideoCapture for reading video frames."""
 
-    def __init__(self, sorurce: str, api: int):
+    def __init__(self, source: str, api: int):
         """Initialize a Video instance.
 
         Args:
             source (str): The video source.
             api (int): The OpenCV backend API identifier.
         """
-        self.__capture = cv2.VideoCapture(sorurce, api)
-        self.source: str = sorurce
-        self.api: int = api
+        self.__capture = cv2.VideoCapture(source, api)
+        self.__source: str = source
+        self.__api: int = api
 
     def __len__(self):
         """Return the number of frames in the video."""
@@ -125,7 +125,7 @@ class Video:
             bool: True if the video capture was successfully opened.
         """
         self.release()
-        return self.__capture.open(self.source, self.api)
+        return self.__capture.open(self.__source, self.__api)
 
     def is_opened(self) -> bool:
         """Check whether the video capture is currently open.
