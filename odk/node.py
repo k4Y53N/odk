@@ -114,10 +114,13 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
 
     @property
     def standalone(self) -> bool:
-        """Whether queue underflow/overflow should not stop the node.
+        """Whether this node ignores upstream/downstream shutdown.
+
+        When ``True``, the node will not stop itself when upstream or downstream nodes
+        become inactive or when queue operations time out.
 
         Returns:
-            bool: ``True`` when keep-alive mode is enabled.
+            bool: ``True`` if the node is standalone, ``False`` otherwise.
         """
         return self.__standalone
 
