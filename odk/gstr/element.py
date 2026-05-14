@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
-from typing import Any, Union, overload
+from typing import Any, Union
 
 __all__ = [
     'Element',
@@ -19,12 +19,6 @@ class Element(ABC):
     def __str__(self):
         return self.__build_element()
 
-    @overload
-    def __or__(self, other: 'Element') -> 'Element': ...
-
-    @overload
-    def __or__(self, other: str) -> 'Element': ...
-
     def __or__(self, other: 'Element | str') -> 'Element':
         other = self.as_element(other)
 
@@ -35,15 +29,8 @@ class Element(ABC):
 
         return self
 
-    @overload
-    def __mul__(self, other: 'Element') -> 'Element': ...
-
-    @overload
-    def __mul__(self, other: str) -> 'Element': ...
-
     def __mul__(self, other: 'Element | str') -> 'Element':
         other = self.as_element(other)
-
         self.sinks.append(other)
         other.srcs.append(self)
 
