@@ -4,6 +4,7 @@ from .image import Image
 
 __all__ = [
     'Video',
+    'VideoWriter',
 ]
 
 
@@ -154,3 +155,100 @@ class Video:
             int: The current frame index.
         """
         return int(self.__capture.get(cv2.CAP_PROP_POS_FRAMES))
+
+
+class VideoWriter:
+    def __init__(self, writer: cv2.VideoWriter, width: int, height: int):
+        self.__writer: cv2.VideoWriter = writer
+        self.__width: int = width
+        self.__height: int = height
+
+    @classmethod
+    def to_file(
+        cls,
+        filename: str,
+        fourcc: str,
+        fps: float,
+        width: int,
+        height: int,
+    ) -> 'VideoWriter':
+        fourcc_code = cv2.VideoWriter.fourcc(*fourcc)
+        writer = cv2.VideoWriter(
+            filename=filename,
+            apiPreference=cv2.CAP_ANY,
+            fourcc=fourcc_code,
+            fps=fps,
+            frameSize=(width, height),
+        )
+
+        return cls(writer, width=width, height=height)
+
+    @classmethod
+    def to_file_like(cls, filename: str, fourcc: str, video: Video) -> 'VideoWriter':
+        return cls.to_file(
+            filename=filename,
+            fourcc=fourcc,
+            fps=video.fps,
+            width=video.width,
+            height=video.height,
+        )
+
+    @classmethod
+    def to_mp4_file(
+        cls,
+        filename: str,
+        fps: float,
+        width: int,
+        height: int,
+    ) -> 'VideoWriter':
+        return cls.to_file(
+            filename=filename,
+            fourcc='mp4v',
+            fps=fps,
+            width=width,
+            height=height,
+        )
+
+    @classmethod
+    def to_mp4_file_like(cls, filename: str, video: Video) -> 'VideoWriter':
+        return cls.to_file_like(filename=filename, fourcc='mp4v', video=video)
+
+    @classmethod
+    def to_gst(
+        cls,
+        pipeline: str,
+        fps: float,
+        width: int,
+        height: int,
+    ) -> 'VideoWriter':
+        writer = cv2.VideoWriter(
+            filename=pipeline,
+            apiPreference=cv2.CAP_GSTREAMER,
+            fourcc=0,
+            fps=fps,
+            frameSize=(width, height),
+        )
+        return cls(writer, width, height)
+
+    @classmethod
+    def to_gst_like(cls, pipeline: str, video: Video) -> 'VideoWriter':
+        return cls.to_gst(
+            pipeline=pipeline,
+            fps=video.fps,
+            width=video.width,
+            height=video.height,
+        )
+
+    def write(self, image: Image):
+        data = image.data
+
+        if data.shape[0] != self.__height or data.shape[1] != self.__width:
+            data = cv2.resize(data, (self.__width, self.__height))
+
+        self.__writer.write(data)
+
+    def is_opened(self) -> bool:
+        return self.__writer.isOpened()
+
+    def release(self):
+        self.__writer.release()
