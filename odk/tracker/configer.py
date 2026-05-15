@@ -33,4 +33,4 @@ class ObjectTrackConfiger:
                 threshold=self.sort_threshold,
             )
 
-        raise NotImplementedError(f'Tracker type not suppored: {self.type}')
+        raise NotImplementedError(f'Tracker type not supported: {self.type}')
