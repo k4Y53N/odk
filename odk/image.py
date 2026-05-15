@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import PathLike
@@ -256,7 +255,7 @@ class Image:
     def interrupt_show(
         self,
         delay: int = 0,
-        interrupt_keys: Iterable[str] = 'qQ',
+        interrupt_keys: str = 'qQ',
         window_name: str | None = None,
     ):
         """Display the image and raise ``KeyboardInterrupt`` if an interrupt key is
@@ -265,8 +264,8 @@ class Image:
         Args:
             delay (int, optional): Milliseconds to wait for a key press. 0 waits
                 indefinitely. Defaults to 0.
-            interrupt_keys (Iterable[str], optional): Characters that trigger an
-                interrupt. Defaults to 'qQ'.
+            interrupt_keys (str, optional): Characters that trigger an interrupt.
+                Defaults to 'qQ'.
             window_name (str | None, optional): Title of the display window.
                 Auto-generated from *interrupt_keys* when ``None``. Defaults to None.
 
