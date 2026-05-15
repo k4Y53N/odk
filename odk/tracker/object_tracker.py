@@ -179,7 +179,7 @@ class ObjectTracker:
             nms_mix_classes=nms_mix_classes,
         )
 
-        if class_mask:
+        if class_mask is not None:
             result = result.class_filter(class_mask)
 
         return self.update(result)
