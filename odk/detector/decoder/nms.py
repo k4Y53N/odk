@@ -37,7 +37,7 @@ def batch_nms(
     batch_scores: NDArray[np.float32],
     score_threshold: float = 0.5,
     iou_threshold: float = 0.5,
-    nms_mix_clsses: bool = True,
+    nms_mix_classes: bool = True,
 ) -> list[NMS]:
     """Perform batched Non-Maximum Suppression on detection outputs.
 
@@ -69,7 +69,7 @@ def batch_nms(
         nmsed_classes: list[NDArray[np.uint16]] | NDArray[np.uint16] = []
         nmsed_scores: list[NDArray[np.float32]] | NDArray[np.float32] = []
 
-        if nms_mix_clsses:
+        if nms_mix_classes:
             index = cv2.dnn.NMSBoxes(
                 bboxes=bboxes,
                 scores=scores,
