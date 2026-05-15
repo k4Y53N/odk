@@ -92,7 +92,7 @@ class YoloDecoder(Decoder[ObjectDetectParams, list[ObjectDetectResult]], ABC):
             batch_scores=batch_scores,
             score_threshold=params.score_threshold,
             iou_threshold=params.iou_threshold,
-            nms_mix_clsses=params.nms_mix_classes,
+            nms_mix_classes=params.nms_mix_classes,
         )
 
         return self._decode_nms(

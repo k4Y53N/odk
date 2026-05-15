@@ -11,15 +11,15 @@ __all__ = [
 class Video:
     """A wrapper around OpenCV VideoCapture for reading video frames."""
 
-    def __init__(self, source: str, api: int):
+    def __init__(self, source: str | int, api: int):
         """Initialize a Video instance.
 
         Args:
-            source (str): The video source.
+            source (str | int): The video source.
             api (int): The OpenCV backend API identifier.
         """
         self.__capture = cv2.VideoCapture(source, api)
-        self.__source: str = source
+        self.__source: str | int = source
         self.__api: int = api
 
     def __len__(self):
@@ -38,11 +38,11 @@ class Video:
         raise StopIteration()
 
     @classmethod
-    def from_uri(cls, source: str) -> 'Video':
+    def from_uri(cls, source: str | int) -> 'Video':
         """Create a Video instance from a URI or file path.
 
         Args:
-            source (str): The URI or file path of the video source.
+            source (str | int): The URI or file path of the video source.
 
         Returns:
             Video: A new Video instance using the default backend.

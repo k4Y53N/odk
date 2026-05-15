@@ -84,7 +84,7 @@ class Image:
         if data is not None:
             return Image(data)
 
-        raise FileNotFoundError(f'Image path: {path} not avaliable')
+        raise FileNotFoundError(f'Image path: {path} not available')
 
     @classmethod
     def decode(
