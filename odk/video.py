@@ -172,6 +172,18 @@ class VideoWriter:
         width: int,
         height: int,
     ) -> 'VideoWriter':
+        """Create a VideoWriter that writes to a file.
+
+        Args:
+            filename (str): The output file path.
+            fourcc (str): A 4-character codec code (e.g. ``'mp4v'``, ``'XVID'``).
+            fps (float): The frame rate of the output video.
+            width (int): The frame width in pixels.
+            height (int): The frame height in pixels.
+
+        Returns:
+            VideoWriter: A new VideoWriter instance.
+        """
         fourcc_code = cv2.VideoWriter.fourcc(*fourcc)
         writer = cv2.VideoWriter(
             filename=filename,
@@ -185,6 +197,16 @@ class VideoWriter:
 
     @classmethod
     def to_file_like(cls, filename: str, fourcc: str, video: Video) -> 'VideoWriter':
+        """Create a VideoWriter that writes to a file, using a Video's properties.
+
+        Args:
+            filename (str): The output file path.
+            fourcc (str): A 4-character codec code (e.g. ``'mp4v'``, ``'XVID'``).
+            video (Video): The source video to copy fps, width, and height from.
+
+        Returns:
+            VideoWriter: A new VideoWriter instance.
+        """
         return cls.to_file(
             filename=filename,
             fourcc=fourcc,
@@ -201,6 +223,17 @@ class VideoWriter:
         width: int,
         height: int,
     ) -> 'VideoWriter':
+        """Create a VideoWriter that writes to an MP4 file.
+
+        Args:
+            filename (str): The output file path.
+            fps (float): The frame rate of the output video.
+            width (int): The frame width in pixels.
+            height (int): The frame height in pixels.
+
+        Returns:
+            VideoWriter: A new VideoWriter instance.
+        """
         return cls.to_file(
             filename=filename,
             fourcc='mp4v',
@@ -211,6 +244,15 @@ class VideoWriter:
 
     @classmethod
     def to_mp4_file_like(cls, filename: str, video: Video) -> 'VideoWriter':
+        """Create a VideoWriter that writes to an MP4 file, using a Video's properties.
+
+        Args:
+            filename (str): The output file path.
+            video (Video): The source video to copy fps, width, and height from.
+
+        Returns:
+            VideoWriter: A new VideoWriter instance.
+        """
         return cls.to_file_like(filename=filename, fourcc='mp4v', video=video)
 
     @classmethod
@@ -221,6 +263,17 @@ class VideoWriter:
         width: int,
         height: int,
     ) -> 'VideoWriter':
+        """Create a VideoWriter that writes to a GStreamer pipeline.
+
+        Args:
+            pipeline (str): The GStreamer pipeline description string.
+            fps (float): The frame rate of the output video.
+            width (int): The frame width in pixels.
+            height (int): The frame height in pixels.
+
+        Returns:
+            VideoWriter: A new VideoWriter instance.
+        """
         writer = cv2.VideoWriter(
             filename=pipeline,
             apiPreference=cv2.CAP_GSTREAMER,
@@ -232,6 +285,16 @@ class VideoWriter:
 
     @classmethod
     def to_gst_like(cls, pipeline: str, video: Video) -> 'VideoWriter':
+        """Create a VideoWriter that writes to a GStreamer pipeline, using a Video's
+        properties.
+
+        Args:
+            pipeline (str): The GStreamer pipeline description string.
+            video (Video): The source video to copy fps, width, and height from.
+
+        Returns:
+            VideoWriter: A new VideoWriter instance.
+        """
         return cls.to_gst(
             pipeline=pipeline,
             fps=video.fps,
@@ -240,6 +303,11 @@ class VideoWriter:
         )
 
     def write(self, image: Image):
+        """Write a frame to the video output, resizing if necessary.
+
+        Args:
+            image (Image): The frame to write.
+        """
         data = image.data
 
         if data.shape[0] != self.__height or data.shape[1] != self.__width:
@@ -248,7 +316,13 @@ class VideoWriter:
         self.__writer.write(data)
 
     def is_opened(self) -> bool:
+        """Check whether the video writer is currently open.
+
+        Returns:
+            bool: True if the video writer is open.
+        """
         return self.__writer.isOpened()
 
     def release(self):
+        """Release the video writer and free associated resources."""
         self.__writer.release()
