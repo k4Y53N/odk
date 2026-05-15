@@ -12,7 +12,7 @@ __all__ = [
 @dataclass(slots=True)
 class RtspSrc(GstElement):
     location: str
-    protocols: Literal['tcp', 'udp', 'udp-mcast' 'tcp+udp-mcast+udp'] | None = None
+    protocols: Literal['tcp', 'udp', 'udp-mcast', 'tcp+udp-mcast+udp'] | None = None
 
 
 @dataclass(slots=True)
