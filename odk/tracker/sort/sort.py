@@ -163,8 +163,8 @@ class SortTracker(Tracker):
         mask = iou[match_track, match_detect] >= self.threshold
         match_track, match_detect = match_track[mask], match_detect[mask]
         not_match_detect = np.delete(np.arange(detect_length), match_detect)
-        new_track_ids = self._extend_new_track(bboxes, not_match_detect)
-        self._assign_track(match_track, bboxes, match_detect)
+        self._assign_track(match_track, bboxes[match_detect])
+        new_track_ids = self._extend_new_track(bboxes[not_match_detect])
         track_ids = np.empty(detect_length, dtype=np.uint64)
         track_ids[match_detect] = buff_ids[match_track]
         track_ids[not_match_detect] = new_track_ids
@@ -207,24 +207,17 @@ class SortTracker(Tracker):
     def _assign_track(
         self,
         match_track: Sequence[int],
-        bboxes: NDArray[np.float32],
-        match_detect: Sequence[int],
+        match_bboxes: NDArray[np.float32],
     ):
-        bboxes = bboxes[match_detect]
-        xysrs = batch_xyxy_to_xysr(bboxes)
+        xysrs = batch_xyxy_to_xysr(match_bboxes)
 
         for index, xysr in zip(match_track, xysrs):
             track = self._tracks[index]
             track.update(xysr)
             track.frame = self._frame
 
-    def _extend_new_track(
-        self,
-        bboxes: NDArray[np.float32],
-        mask: NDArray[np.int_],
-    ) -> list[int]:
-        bboxes = bboxes[mask]
-        xysrs = batch_xyxy_to_xysr(bboxes)
+    def _extend_new_track(self, new_bboxes: NDArray[np.float32]) -> list[int]:
+        xysrs = batch_xyxy_to_xysr(new_bboxes)
         next_ids = [self._next_id() for _ in range(len(xysrs))]
         self._tracks.extend(
             Track.from_xysr(
