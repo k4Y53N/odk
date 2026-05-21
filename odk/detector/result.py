@@ -33,6 +33,18 @@ class ObjectInfo:
     def bottom(self) -> float:
         return self.bbox[3]
 
+    @property
+    def width(self) -> float:
+        return max(self.right - self.left, 0)
+
+    @property
+    def height(self) -> float:
+        return max(self.bottom - self.top, 0)
+
+    @property
+    def area(self) -> float:
+        return self.width * self.height
+
 
 @dataclass(slots=True)
 class ObjectDetectResult:
