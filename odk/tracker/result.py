@@ -34,6 +34,18 @@ class ObjectTrackInfo:
     def bottom(self) -> float:
         return self.bbox[3]
 
+    @property
+    def width(self) -> float:
+        return max(self.right - self.left, 0)
+
+    @property
+    def height(self) -> float:
+        return max(self.bottom - self.top, 0)
+
+    @property
+    def area(self) -> float:
+        return self.width * self.height
+
 
 @dataclass(slots=True)
 class ObjectTrackResult:
@@ -63,6 +75,69 @@ class ObjectTrackResult:
             score=self.scores[index],
             label=self.class_label[class_id],
         )
+
+    @property
+    def left(self) -> NDArray[np.float32]:
+        """Left (x-min) coordinates of all bounding boxes.
+
+        Returns:
+            NDArray[np.float32]: 1-D array of left edge values.
+        """
+        return self.bboxes[..., 0]
+
+    @property
+    def top(self) -> NDArray[np.float32]:
+        """Top (y-min) coordinates of all bounding boxes.
+
+        Returns:
+            NDArray[np.float32]: 1-D array of top edge values.
+        """
+        return self.bboxes[..., 1]
+
+    @property
+    def right(self) -> NDArray[np.float32]:
+        """Right (x-max) coordinates of all bounding boxes.
+
+        Returns:
+            NDArray[np.float32]: 1-D array of right edge values.
+        """
+        return self.bboxes[..., 2]
+
+    @property
+    def bottom(self) -> NDArray[np.float32]:
+        """Bottom (y-max) coordinates of all bounding boxes.
+
+        Returns:
+            NDArray[np.float32]: 1-D array of bottom edge values.
+        """
+        return self.bboxes[..., 3]
+
+    @property
+    def width(self) -> NDArray[np.float32]:
+        """Widths of all bounding boxes, clamped to a minimum of zero.
+
+        Returns:
+            NDArray[np.float32]: 1-D array of bounding box widths.
+        """
+        return np.clip(self.right - self.left, 0)
+
+    @property
+    def height(self) -> NDArray[np.float32]:
+        """Heights of all bounding boxes, clamped to a minimum of zero.
+
+        Returns:
+            NDArray[np.float32]: 1-D array of bounding box heights.
+        """
+        return np.clip(self.bottom - self.top, 0)
+
+    @property
+    def area(self) -> NDArray[np.float32]:
+        """Areas of all bounding boxes (width * height).
+
+        Returns:
+            NDArray[np.float32]: 1-D array of bounding box areas.
+        """
+        return self.width * self.height
 
     def copy(self) -> 'ObjectTrackResult':
         """Return a deep copy of this result.
