@@ -175,8 +175,8 @@ class SortTracker(Tracker):
         self._remove_timeout()
         return np.empty(0, dtype=np.uint64)
 
-    def _when_track_empty(self, new_bboxes: NDArray[np.float32]) -> NDArray[np.uint64]:
-        next_ids = self._extend_new_track(new_bboxes)
+    def _when_track_empty(self, bboxes: NDArray[np.float32]) -> NDArray[np.uint64]:
+        next_ids = self._extend_new_track(bboxes)
         return np.array(next_ids, dtype=np.uint64)
 
     def _remove_timeout(self):
@@ -205,8 +205,8 @@ class SortTracker(Tracker):
             track.update(xysr)
             track.frame = self._frame
 
-    def _extend_new_track(self, new_bboxes: NDArray[np.float32]) -> list[int]:
-        xysrs = batch_xyxy_to_xysr(new_bboxes)
+    def _extend_new_track(self, bboxes: NDArray[np.float32]) -> list[int]:
+        xysrs = batch_xyxy_to_xysr(bboxes)
         next_ids = [self._next_id() for _ in range(len(xysrs))]
         self._tracks.extend(
             Track.from_xysr(
