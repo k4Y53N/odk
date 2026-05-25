@@ -264,8 +264,8 @@ class Image:
         Args:
             delay (int, optional): Milliseconds to wait for a key press. 0 waits
                 indefinitely. Defaults to 0.
-            interrupt_keys (str, optional): Characters that trigger an interrupt.
-                Defaults to 'qQ'.
+            interrupt_keys (str, optional): Characters that trigger an interrupt. If
+                empty, any key input will trigger an interrupt. Defaults to 'qQ'.
             window_name (str | None, optional): Title of the display window.
                 Auto-generated from *interrupt_keys* when ``None``. Defaults to None.
 
@@ -279,11 +279,15 @@ class Image:
         if window_name is None:
             window_name = 'Interrupt by key: ' + ' '.join(interrupt_keys)
 
-        interrupt_keys = tuple(map(ord, interrupt_keys))
         key = self.show(delay=delay, window_name=window_name)
 
-        if (key != -1 and len(interrupt_keys) == 0) or key in interrupt_keys:
-            raise KeyboardInterrupt(f'Interrupt by key {chr(key)}')
+        if key == -1:
+            return key
+
+        char = chr(key)
+
+        if len(interrupt_keys) == 0 or char in interrupt_keys:
+            raise KeyboardInterrupt(f'Interrupt by key {char}')
 
         return key
 
