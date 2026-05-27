@@ -45,6 +45,18 @@ class ObjectInfo:
     def area(self) -> float:
         return self.width * self.height
 
+    @property
+    def center_x(self) -> float:
+        return (self.left + self.right) / 2
+
+    @property
+    def center_y(self) -> float:
+        return (self.top + self.bottom) / 2
+
+    @property
+    def center_point(self) -> tuple[float, float]:
+        return self.center_x, self.center_y
+
 
 @dataclass(slots=True)
 class ObjectDetectResult:
@@ -142,6 +154,38 @@ class ObjectDetectResult:
             NDArray[np.float32]: 1-D array of bounding box areas.
         """
         return self.width * self.height
+
+    @property
+    def center_x(self) -> NDArray[np.float32]:
+        """Horizontal centre coordinates of all bounding boxes.
+
+        Returns:
+            NDArray[np.float32]: 1-D array of x-centre values ((left + right) / 2).
+        """
+        return np.sum(self.bboxes[..., [0, 2]], axis=-1) / 2
+
+    @property
+    def center_y(self) -> NDArray[np.float32]:
+        """Vertical centre coordinates of all bounding boxes.
+
+        Returns:
+            NDArray[np.float32]: 1-D array of y-centre values ((top + bottom) / 2).
+        """
+        return np.sum(self.bboxes[..., [1, 3]], axis=-1) / 2
+
+    @property
+    def center_point(self) -> NDArray[np.float32]:
+        """Centre points of all bounding boxes.
+
+        Returns:
+            NDArray[np.float32]: 2-D array of shape (N, 2) where each row is
+                ``[center_x, center_y]`` for the corresponding bounding box.
+        """
+        points = np.empty((len(self), 2), dtype=np.float32)
+        points[..., 0] = self.center_x
+        points[..., 1] = self.center_y
+
+        return points
 
     def copy(self) -> 'ObjectDetectResult':
         """Return a deep copy of this result.
