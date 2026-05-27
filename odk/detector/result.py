@@ -45,6 +45,18 @@ class ObjectInfo:
     def area(self) -> float:
         return self.width * self.height
 
+    @property
+    def center_x(self) -> float:
+        return (self.left + self.right) / 2
+
+    @property
+    def center_y(self) -> float:
+        return (self.top + self.bottom) / 2
+
+    @property
+    def center_point(self) -> tuple[float, float]:
+        return self.center_x, self.center_y
+
 
 @dataclass(slots=True)
 class ObjectDetectResult:
