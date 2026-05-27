@@ -163,8 +163,9 @@ class SortTracker(Tracker):
         mask = iou[match_track, match_detect] >= self.threshold
         match_track, match_detect = match_track[mask], match_detect[mask]
         not_match_detect = np.delete(np.arange(detect_length), match_detect)
-        self._assign_track(match_track, bboxes[match_detect])
-        new_track_ids = self._extend_new_track(bboxes[not_match_detect])
+        xysrs = batch_xyxy_to_xysr(bboxes.copy())
+        self._assign_track(match_track, xysrs[match_detect])
+        new_track_ids = self._extend_new_track(xysrs[not_match_detect])
         track_ids = np.empty(detect_length, dtype=np.uint64)
         track_ids[match_detect] = buff_ids[match_track]
         track_ids[not_match_detect] = new_track_ids
@@ -176,7 +177,7 @@ class SortTracker(Tracker):
         return np.empty(0, dtype=np.uint64)
 
     def _when_track_empty(self, bboxes: NDArray[np.float32]) -> NDArray[np.uint64]:
-        next_ids = self._extend_new_track(bboxes.copy())
+        next_ids = self._extend_new_track(batch_xyxy_to_xysr(bboxes.copy()))
         return np.array(next_ids, dtype=np.uint64)
 
     def _remove_timeout(self):
@@ -189,25 +190,20 @@ class SortTracker(Tracker):
         for index in expire_index[::-1]:
             self._tracks.pop(index)
 
-    def _next_id(self) -> int:
-        self._track_id = (self._track_id + 1) % UINT64_MAX
-        return self._track_id
+    def _next_id(self, offset: int) -> NDArray[np.uint64]:
+        ids = np.arange(offset, dtype=np.uint64) + np.uint64(self._track_id)
+        self._track_id = (self._track_id + offset) % UINT64_MAX
 
-    def _assign_track(
-        self,
-        match_track: Sequence[int],
-        match_bboxes: NDArray[np.float32],
-    ):
-        xysrs = batch_xyxy_to_xysr(match_bboxes)
+        return ids
 
-        for index, xysr in zip(match_track, xysrs):
+    def _assign_track(self, track_indices: Sequence[int], xysrs: NDArray[np.float32]):
+        for index, xysr in zip(track_indices, xysrs):
             track = self._tracks[index]
             track.update(xysr)
             track.frame = self._frame
 
-    def _extend_new_track(self, bboxes: NDArray[np.float32]) -> list[int]:
-        xysrs = batch_xyxy_to_xysr(bboxes)
-        next_ids = [self._next_id() for _ in range(len(xysrs))]
+    def _extend_new_track(self, xysrs: NDArray[np.float32]) -> NDArray[np.uint64]:
+        next_ids = self._next_id(len(xysrs))
         self._tracks.extend(
             Track.from_xysr(
                 track_id=track_id,
