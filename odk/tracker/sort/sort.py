@@ -190,9 +190,11 @@ class SortTracker(Tracker):
         for index in expire_index[::-1]:
             self._tracks.pop(index)
 
-    def _next_id(self) -> int:
-        self._track_id = (self._track_id + 1) % UINT64_MAX
-        return self._track_id
+    def _next_id(self, offset: int) -> NDArray[np.uint64]:
+        ids = np.arange(offset, dtype=np.uint64) + np.uint64(self._track_id)
+        self._track_id = (self._track_id + offset) % UINT64_MAX
+
+        return ids
 
     def _assign_track(self, track_indices: Sequence[int], xysrs: NDArray[np.float32]):
         for index, xysr in zip(track_indices, xysrs):
@@ -200,8 +202,8 @@ class SortTracker(Tracker):
             track.update(xysr)
             track.frame = self._frame
 
-    def _extend_new_track(self, xysrs: NDArray[np.float32]) -> list[int]:
-        next_ids = [self._next_id() for _ in range(len(xysrs))]
+    def _extend_new_track(self, xysrs: NDArray[np.float32]) -> NDArray[np.uint64]:
+        next_ids = self._next_id(len(xysrs))
         self._tracks.extend(
             Track.from_xysr(
                 track_id=track_id,
