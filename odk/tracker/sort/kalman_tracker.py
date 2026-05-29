@@ -36,7 +36,6 @@ _H = np.array(
 _P = np.eye(_dim_x, dtype=np.float32)
 _Q = np.eye(_dim_x, dtype=np.float32)
 _R = np.eye(_dim_z, dtype=np.float32)
-_M = np.zeros((_dim_z, _dim_z), dtype=np.float32)
 _I = np.eye(_dim_x, dtype=np.float32)
 
 
@@ -53,35 +52,36 @@ class KalmanFilter:
     dim_z: int = _dim_z
     x: NDArray[np.float32] = field(default_factory=_X.copy)
     P: NDArray[np.float32] = field(default_factory=_P.copy)
-    Q: NDArray[np.float32] = field(default_factory=_Q.copy)
-    F: NDArray[np.float32] = field(default_factory=_F.copy)
-    H: NDArray[np.float32] = field(default_factory=_H.copy)
-    R: NDArray[np.float32] = field(default_factory=_R.copy)
-    M: NDArray[np.float32] = field(default_factory=_M.copy)
 
     def predict(self):
         """Predict next state (prior) using the Kalman filter state propagation
         equations.
         """
-        self.x = np.dot(self.F, self.x)  # x = Fx
-        self.P = np.dot(self.F, np.dot(self.P, self.F.T)) + self.Q  # P = FPF' + Q
+        # x = Fx
+        np.dot(_F, self.x, out=self.x)
+        # P = FPF' + Q
+        np.add(
+            np.dot(_F, np.dot(self.P, _F.T)),
+            _Q,
+            out=self.P,
+        )
 
-    def update(self, z: NDArray):
+    def update(self, z: NDArray[np.float32]):
         """At the time step k, this update step computes the posterior mean x and
         covariance P of the system state given a new measurement z.
         """
         # y = z - Hx (Residual between measurement and prediction)
-        y = z - np.dot(self.H, self.x)
-        PHT = np.dot(self.P, self.H.T)
+        y = z - np.dot(_H, self.x)
+        PHT = np.dot(self.P, _H.T)
         # S = HPH' + R (Project system uncertainty into measurement space)
-        S = np.dot(self.H, PHT) + self.R
+        S = np.dot(_H, PHT) + _R
         # K = PH'S^-1  (map system uncertainty into Kalman gain)
         K = np.dot(PHT, inv(S))
         # x = x + Ky  (predict new x with residual scaled by the Kalman gain)
-        self.x = self.x + np.dot(K, y)
+        np.add(self.x, np.dot(K, y), out=self.x)
         # P = (I-KH)P
-        I_KH = _I - np.dot(K, self.H)
-        self.P = np.dot(I_KH, self.P)
+        I_KH = _I - np.dot(K, _H)
+        np.dot(I_KH, self.P, out=self.P)
 
 
 class KalmanTrack:
