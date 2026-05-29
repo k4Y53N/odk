@@ -48,8 +48,6 @@ _Q[4:, 4:] *= 0.01
 
 @dataclass(slots=True)
 class KalmanFilter:
-    dim_x: int = _dim_x
-    dim_z: int = _dim_z
     x: NDArray[np.float32] = field(default_factory=_X.copy)
     P: NDArray[np.float32] = field(default_factory=_P.copy)
 
@@ -88,7 +86,7 @@ class KalmanTrack:
     """This class represents the internal state of individual tracked objects observed as bounding boxes."""
 
     def __init__(self, xysr: NDArray[np.float32]):
-        self.kf = KalmanFilter(dim_x=7, dim_z=4)
+        self.kf = KalmanFilter()
         self.kf.x[:4] = xysr[:, None]
 
     def project(self) -> NDArray[np.float32]:
