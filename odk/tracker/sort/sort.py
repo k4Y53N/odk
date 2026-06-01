@@ -45,10 +45,11 @@ def batch_xyxy_to_xysr(xyxy: NDArray[np.float32]) -> NDArray[np.float32]:
         NDArray[np.float32]: [N, 4] in [x, y, s, r]
             where x, y are center coordinates, s is area, r is aspect ratio (w/h).
     """
-    width = xyxy[..., 2] - xyxy[..., 0]
-    height = xyxy[..., 3] - xyxy[..., 1]
-    xyxy[..., 0] = (xyxy[..., 0] + xyxy[..., 2]) / 2
-    xyxy[..., 1] = (xyxy[..., 1] + xyxy[..., 3]) / 2
+    left, top, right, bottom = xyxy.T
+    width = right - left
+    height = bottom - top
+    xyxy[..., 0] = (left + right) / 2
+    xyxy[..., 1] = (top + bottom) / 2
     xyxy[..., 2] = width * height
     xyxy[..., 3] = width / height
 
