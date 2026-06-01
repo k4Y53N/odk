@@ -162,13 +162,14 @@ class SortTracker(Tracker):
         match_track, match_detect = linear_sum_assignment(-iou)
         mask = iou[match_track, match_detect] >= self.threshold
         match_track, match_detect = match_track[mask], match_detect[mask]
-        not_match_detect = np.delete(np.arange(detect_length), match_detect)
+        not_match_mask = np.full(detect_length, True, dtype=np.bool_)
+        not_match_mask[match_detect] = False
         xysrs = batch_xyxy_to_xysr(bboxes.copy())
         self._assign_track(match_track, xysrs[match_detect])
-        new_track_ids = self._extend_new_track(xysrs[not_match_detect])
+        new_track_ids = self._extend_new_track(xysrs[not_match_mask])
         track_ids = np.empty(detect_length, dtype=np.uint64)
         track_ids[match_detect] = buff_ids[match_track]
-        track_ids[not_match_detect] = new_track_ids
+        track_ids[not_match_mask] = new_track_ids
 
         return track_ids
 
