@@ -36,7 +36,12 @@ class ImageEncoder(Encoder[Any]):
         params: Any,
     ) -> Sequence[NDArray]:
         tensor = [
-            cv2.resize(image, (self.width, self.height)) for image in origin_input
+            (
+                cv2.resize(image, (self.width, self.height))
+                if image.shape[0] != self.height or image.shape[1] != self.width
+                else image
+            )
+            for image in origin_input
         ]
 
         if len(tensor) == 1:
