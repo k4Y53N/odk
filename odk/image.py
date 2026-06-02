@@ -142,7 +142,12 @@ class Image:
             interpolation (int, optional): OpenCV interpolation flag. Defaults to
                 cv2.INTER_LINEAR.
         """
-        self.data = cv2.resize(self.data, (width, height), interpolation=interpolation)
+        if self.width != width or self.height != height:
+            self.data = cv2.resize(
+                self.data,
+                (width, height),
+                interpolation=interpolation,
+            )
 
     def crop(
         self,
