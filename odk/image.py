@@ -133,16 +133,33 @@ class Image:
         """Return a deep copy of the image data preserving the timestamp."""
         return Image(self.data.copy(), timestamp=self.timestamp)
 
-    def resize(self, width: int, height: int, interpolation: int = cv2.INTER_LINEAR):
-        """Resize the image in-place to the given dimensions.
+    def resize(
+        self,
+        width: int,
+        height: int,
+        interpolation: int = cv2.INTER_LINEAR,
+    ) -> 'Image':
+        """Resize the image to the given dimensions in-place.
+
+        If the image already matches *width* and *height*, no operation is performed.
 
         Args:
             width (int): Target width in pixels.
             height (int): Target height in pixels.
-            interpolation (int, optional): OpenCV interpolation flag. Defaults to
-                cv2.INTER_LINEAR.
+            interpolation (int, optional): OpenCV interpolation flag used when scaling.
+                Defaults to cv2.INTER_LINEAR.
+
+        Returns:
+            Image: self.
         """
-        self.data = cv2.resize(self.data, (width, height), interpolation=interpolation)
+        if self.width != width or self.height != height:
+            self.data = cv2.resize(
+                self.data,
+                (width, height),
+                interpolation=interpolation,
+            )
+
+        return self
 
     def crop(
         self,
@@ -217,7 +234,7 @@ class Image:
         buf = self.encode(extension, quality)
         return buf.tobytes()
 
-    def save(self, path: str | PathLike, quality: float = 1):
+    def save(self, path: str | PathLike, quality: float = 1) -> 'Image':
         """Save the image to a file on disk.
 
         Args:
@@ -228,6 +245,9 @@ class Image:
 
         Raises:
             OSError: If the image could not be written to *path*.
+
+        Returns:
+            Image: self.
         """
         suffix = Path(path).suffix
         quality_params = get_image_ext_quality(suffix, quality)
@@ -235,6 +255,8 @@ class Image:
 
         if not is_saved:
             raise OSError(f'Failed to save image to {path}')
+
+        return self
 
     def show(self, delay: int = 0, window_name: str = 'image') -> int:
         """Display the image in an OpenCV window and wait for a key press.
@@ -257,7 +279,7 @@ class Image:
         delay: int = 0,
         interrupt_keys: str = 'qQ',
         window_name: str | None = None,
-    ):
+    ) -> int:
         """Display the image and raise ``KeyboardInterrupt`` if an interrupt key is
         pressed.
 
@@ -380,7 +402,7 @@ class Image:
         bottom: float,
         color: tuple[int, int, int],
         thickness: int = 2,
-    ):
+    ) -> 'Image':
         """Draw a bounding box rectangle on the image.
 
         Args:
@@ -390,6 +412,9 @@ class Image:
             bottom (float): Y-coordinate of the bottom edge, in pixels.
             color (tuple[int, int, int]): BGR color of the rectangle outline.
             thickness (int, optional): Line thickness in pixels. Defaults to 2.
+
+        Returns:
+            Image: self.
         """
         left, top, right, bottom = np.round([left, top, right, bottom]).astype(np.int32)
         cv2.rectangle(
@@ -400,12 +425,14 @@ class Image:
             thickness=thickness,
         )
 
+        return self
+
     def draw_bboxes(
         self,
         bboxes: NDArray[np.int_] | NDArray[np.float32],
         color: tuple[int, int, int],
         thickness: int = 2,
-    ):
+    ) -> 'Image':
         """Draw multiple bounding box rectangles on the image.
 
         Args:
@@ -413,9 +440,14 @@ class Image:
                 where each row is ``[left, top, right, bottom]``.
             color (tuple[int, int, int]): BGR color of the rectangle outlines.
             thickness (int, optional): Line thickness in pixels. Defaults to 2.
+
+        Returns:
+            Image: self.
         """
         for bbox in bboxes:
             self.draw_bbox(*bbox, color=color, thickness=thickness)
+
+        return self
 
     def draw_line(
         self,
@@ -423,7 +455,7 @@ class Image:
         color: tuple[int, int, int],
         is_closed: bool = False,
         thickness: int = 2,
-    ):
+    ) -> 'Image':
         """Draw a polyline through the given points on the image.
 
         Args:
@@ -433,6 +465,9 @@ class Image:
             is_closed (bool, optional): If ``True``, connect the last point back to the
                 first. Defaults to False.
             thickness (int, optional): Line thickness in pixels. Defaults to 2.
+
+        Returns:
+            Image: self.
         """
         points = np.round(points).astype(np.int32)
         cv2.polylines(
@@ -443,12 +478,14 @@ class Image:
             thickness=thickness,
         )
 
+        return self
+
     def draw_polygon(
         self,
         points: NDArray[np.int_] | NDArray[np.float32],
         color: tuple[int, int, int],
         alpha: float = 1,
-    ):
+    ) -> 'Image':
         """Draw a filled polygon on the image.
 
         When *alpha* is ``1`` the polygon is drawn opaquely. Values between ``0`` and
@@ -460,21 +497,26 @@ class Image:
                 containing ``(x, y)`` vertex coordinates.
             color (tuple[int, int, int]): BGR fill color.
             alpha (float, optional): Opacity in the range [0, 1]. Defaults to 1.
+
+        Returns:
+            Image: self.
         """
         alpha = np.clip(alpha, 0, 1)
 
         if not alpha:
-            return
+            return self
 
         points = np.round(points).astype(np.int32)
 
         if alpha == 1:
             cv2.fillPoly(self.data, pts=[points], color=color)
-            return
+            return self
 
         overlay = self.data.copy()
         cv2.fillPoly(overlay, pts=[points], color=color)
         cv2.addWeighted(overlay, alpha, self.data, 1 - alpha, 0, dst=self.data)
+
+        return self
 
     def draw_points(
         self,
@@ -482,7 +524,7 @@ class Image:
         color: tuple[int, int, int],
         radius: int = 2,
         thickness: int = -1,
-    ):
+    ) -> 'Image':
         """Draw circles at the given points on the image.
 
         Args:
@@ -492,6 +534,9 @@ class Image:
             radius (int, optional): Circle radius in pixels. Defaults to 2.
             thickness (int, optional): Circle outline thickness in pixels. ``-1`` fills
                 the circle. Defaults to -1.
+
+        Returns:
+            Image: self.
         """
         points = np.round(points).astype(np.int32)
 
@@ -503,3 +548,5 @@ class Image:
                 color=color,
                 thickness=thickness,
             )
+
+        return self
