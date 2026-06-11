@@ -158,8 +158,26 @@ class Video:
 
 
 class VideoWriter:
-    def __init__(self, writer: cv2.VideoWriter, width: int, height: int):
-        self.__writer: cv2.VideoWriter = writer
+    def __init__(
+        self,
+        source: str,
+        api: int,
+        fourcc: int,
+        fps: float,
+        width: int,
+        height: int,
+    ):
+        self.__writer = cv2.VideoWriter(
+            source=source,
+            apiPreference=api,
+            fourcc=fourcc,
+            fps=fps,
+            frameSize=(width, height),
+        )
+        self.__source: int = source
+        self.__api: int = api
+        self.__fourcc: int = fourcc
+        self.__fps: float = fps
         self.__width: int = width
         self.__height: int = height
 
@@ -300,6 +318,21 @@ class VideoWriter:
             fps=video.fps,
             width=video.width,
             height=video.height,
+        )
+
+    def open(self) -> bool:
+        """Open or reopen the video writer.
+
+        Returns:
+            bool: True if the video writer was successfully opened.
+        """
+        self.release()
+        return self.__writer.open(
+            source=self.__source,
+            apiPreference=self.__api,
+            fourcc=self.__fourcc,
+            fps=self.__fps,
+            frameSize=(self.__width, self.__height),
         )
 
     def write(self, image: Image):
