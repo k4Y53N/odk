@@ -319,6 +319,19 @@ class VideoWriter:
             height=video.height,
         )
 
+    def write(self, image: Image):
+        """Write a frame to the video output, resizing if necessary.
+
+        Args:
+            image (Image): The frame to write.
+        """
+        data = image.data
+
+        if data.shape[0] != self.__height or data.shape[1] != self.__width:
+            data = cv2.resize(data, (self.__width, self.__height))
+
+        self.__writer.write(data)
+
     def open(self) -> bool:
         """Open or reopen the video writer.
 
@@ -333,19 +346,6 @@ class VideoWriter:
             fps=self.__fps,
             frameSize=(self.__width, self.__height),
         )
-
-    def write(self, image: Image):
-        """Write a frame to the video output, resizing if necessary.
-
-        Args:
-            image (Image): The frame to write.
-        """
-        data = image.data
-
-        if data.shape[0] != self.__height or data.shape[1] != self.__width:
-            data = cv2.resize(data, (self.__width, self.__height))
-
-        self.__writer.write(data)
 
     def is_opened(self) -> bool:
         """Check whether the video writer is currently open.
