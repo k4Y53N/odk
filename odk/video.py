@@ -158,8 +158,26 @@ class Video:
 
 
 class VideoWriter:
-    def __init__(self, writer: cv2.VideoWriter, width: int, height: int):
-        self.__writer: cv2.VideoWriter = writer
+    def __init__(
+        self,
+        source: str,
+        api: int,
+        fourcc: int,
+        fps: float,
+        width: int,
+        height: int,
+    ):
+        self.__writer = cv2.VideoWriter(
+            source=source,
+            apiPreference=api,
+            fourcc=fourcc,
+            fps=fps,
+            frameSize=(width, height),
+        )
+        self.__source: str = source
+        self.__api: int = api
+        self.__fourcc: int = fourcc
+        self.__fps: float = fps
         self.__width: int = width
         self.__height: int = height
 
@@ -167,7 +185,7 @@ class VideoWriter:
     def to_file(
         cls,
         filename: str,
-        fourcc: str,
+        fourcc_str: str,
         fps: float,
         width: int,
         height: int,
@@ -176,7 +194,7 @@ class VideoWriter:
 
         Args:
             filename (str): The output file path.
-            fourcc (str): A 4-character codec code (e.g. ``'mp4v'``, ``'XVID'``).
+            fourcc_str (str): A 4-character codec code (e.g. ``'mp4v'``, ``'XVID'``).
             fps (float): The frame rate of the output video.
             width (int): The frame width in pixels.
             height (int): The frame height in pixels.
@@ -184,24 +202,28 @@ class VideoWriter:
         Returns:
             VideoWriter: A new VideoWriter instance.
         """
-        fourcc_code = cv2.VideoWriter.fourcc(*fourcc)
-        writer = cv2.VideoWriter(
-            filename=filename,
-            apiPreference=cv2.CAP_ANY,
-            fourcc=fourcc_code,
+        fourcc = cv2.VideoWriter.fourcc(*fourcc_str)
+        return cls(
+            source=filename,
+            api=cv2.CAP_ANY,
+            fourcc=fourcc,
             fps=fps,
-            frameSize=(width, height),
+            width=width,
+            height=height,
         )
 
-        return cls(writer, width=width, height=height)
-
     @classmethod
-    def to_file_like(cls, filename: str, fourcc: str, video: Video) -> 'VideoWriter':
+    def to_file_like(
+        cls,
+        filename: str,
+        fourcc_str: str,
+        video: Video,
+    ) -> 'VideoWriter':
         """Create a VideoWriter that writes to a file, using a Video's properties.
 
         Args:
             filename (str): The output file path.
-            fourcc (str): A 4-character codec code (e.g. ``'mp4v'``, ``'XVID'``).
+            fourcc_str (str): A 4-character codec code (e.g. ``'mp4v'``, ``'XVID'``).
             video (Video): The source video to copy fps, width, and height from.
 
         Returns:
@@ -209,7 +231,7 @@ class VideoWriter:
         """
         return cls.to_file(
             filename=filename,
-            fourcc=fourcc,
+            fourcc_str=fourcc_str,
             fps=video.fps,
             width=video.width,
             height=video.height,
@@ -236,7 +258,7 @@ class VideoWriter:
         """
         return cls.to_file(
             filename=filename,
-            fourcc='mp4v',
+            fourcc_str='mp4v',
             fps=fps,
             width=width,
             height=height,
@@ -253,7 +275,7 @@ class VideoWriter:
         Returns:
             VideoWriter: A new VideoWriter instance.
         """
-        return cls.to_file_like(filename=filename, fourcc='mp4v', video=video)
+        return cls.to_file_like(filename=filename, fourcc_str='mp4v', video=video)
 
     @classmethod
     def to_gst(
@@ -274,14 +296,14 @@ class VideoWriter:
         Returns:
             VideoWriter: A new VideoWriter instance.
         """
-        writer = cv2.VideoWriter(
-            filename=pipeline,
-            apiPreference=cv2.CAP_GSTREAMER,
+        return cls(
+            source=pipeline,
+            api=cv2.CAP_ANY,
             fourcc=0,
             fps=fps,
-            frameSize=(width, height),
+            width=width,
+            height=height,
         )
-        return cls(writer, width, height)
 
     @classmethod
     def to_gst_like(cls, pipeline: str, video: Video) -> 'VideoWriter':
@@ -314,6 +336,21 @@ class VideoWriter:
             data = cv2.resize(data, (self.__width, self.__height))
 
         self.__writer.write(data)
+
+    def open(self) -> bool:
+        """Open or reopen the video writer.
+
+        Returns:
+            bool: True if the video writer was successfully opened.
+        """
+        self.release()
+        return self.__writer.open(
+            source=self.__source,
+            apiPreference=self.__api,
+            fourcc=self.__fourcc,
+            fps=self.__fps,
+            frameSize=(self.__width, self.__height),
+        )
 
     def is_opened(self) -> bool:
         """Check whether the video writer is currently open.
