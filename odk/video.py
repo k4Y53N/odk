@@ -174,7 +174,7 @@ class VideoWriter:
             fps=fps,
             frameSize=(width, height),
         )
-        self.__source: int = source
+        self.__source: str = source
         self.__api: int = api
         self.__fourcc: int = fourcc
         self.__fps: float = fps
@@ -203,15 +203,14 @@ class VideoWriter:
             VideoWriter: A new VideoWriter instance.
         """
         fourcc_code = cv2.VideoWriter.fourcc(*fourcc)
-        writer = cv2.VideoWriter(
-            filename=filename,
-            apiPreference=cv2.CAP_ANY,
+        return cls(
+            source=filename,
+            api=cv2.CAP_ANY,
             fourcc=fourcc_code,
             fps=fps,
-            frameSize=(width, height),
+            width=width,
+            height=height,
         )
-
-        return cls(writer, width=width, height=height)
 
     @classmethod
     def to_file_like(cls, filename: str, fourcc: str, video: Video) -> 'VideoWriter':
@@ -292,14 +291,14 @@ class VideoWriter:
         Returns:
             VideoWriter: A new VideoWriter instance.
         """
-        writer = cv2.VideoWriter(
-            filename=pipeline,
-            apiPreference=cv2.CAP_GSTREAMER,
+        return cls(
+            source=pipeline,
+            api=cv2.CAP_ANY,
             fourcc=0,
             fps=fps,
-            frameSize=(width, height),
+            width=width,
+            height=height,
         )
-        return cls(writer, width, height)
 
     @classmethod
     def to_gst_like(cls, pipeline: str, video: Video) -> 'VideoWriter':
