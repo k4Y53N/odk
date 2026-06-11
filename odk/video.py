@@ -185,7 +185,7 @@ class VideoWriter:
     def to_file(
         cls,
         filename: str,
-        fourcc: str,
+        fourcc_str: str,
         fps: float,
         width: int,
         height: int,
@@ -194,7 +194,7 @@ class VideoWriter:
 
         Args:
             filename (str): The output file path.
-            fourcc (str): A 4-character codec code (e.g. ``'mp4v'``, ``'XVID'``).
+            fourcc_str (str): A 4-character codec code (e.g. ``'mp4v'``, ``'XVID'``).
             fps (float): The frame rate of the output video.
             width (int): The frame width in pixels.
             height (int): The frame height in pixels.
@@ -202,23 +202,28 @@ class VideoWriter:
         Returns:
             VideoWriter: A new VideoWriter instance.
         """
-        fourcc_code = cv2.VideoWriter.fourcc(*fourcc)
+        fourcc = cv2.VideoWriter.fourcc(*fourcc_str)
         return cls(
             source=filename,
             api=cv2.CAP_ANY,
-            fourcc=fourcc_code,
+            fourcc=fourcc,
             fps=fps,
             width=width,
             height=height,
         )
 
     @classmethod
-    def to_file_like(cls, filename: str, fourcc: str, video: Video) -> 'VideoWriter':
+    def to_file_like(
+        cls,
+        filename: str,
+        fourcc_str: str,
+        video: Video,
+    ) -> 'VideoWriter':
         """Create a VideoWriter that writes to a file, using a Video's properties.
 
         Args:
             filename (str): The output file path.
-            fourcc (str): A 4-character codec code (e.g. ``'mp4v'``, ``'XVID'``).
+            fourcc_str (str): A 4-character codec code (e.g. ``'mp4v'``, ``'XVID'``).
             video (Video): The source video to copy fps, width, and height from.
 
         Returns:
@@ -226,7 +231,7 @@ class VideoWriter:
         """
         return cls.to_file(
             filename=filename,
-            fourcc=fourcc,
+            fourcc_str=fourcc_str,
             fps=video.fps,
             width=video.width,
             height=video.height,
@@ -253,7 +258,7 @@ class VideoWriter:
         """
         return cls.to_file(
             filename=filename,
-            fourcc='mp4v',
+            fourcc_str='mp4v',
             fps=fps,
             width=width,
             height=height,
@@ -270,7 +275,7 @@ class VideoWriter:
         Returns:
             VideoWriter: A new VideoWriter instance.
         """
-        return cls.to_file_like(filename=filename, fourcc='mp4v', video=video)
+        return cls.to_file_like(filename=filename, fourcc_str='mp4v', video=video)
 
     @classmethod
     def to_gst(
