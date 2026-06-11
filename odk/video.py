@@ -160,7 +160,7 @@ class Video:
 class VideoWriter:
     def __init__(
         self,
-        source: str,
+        destination: str,
         api: int,
         fourcc: int,
         fps: float,
@@ -168,13 +168,13 @@ class VideoWriter:
         height: int,
     ):
         self.__writer = cv2.VideoWriter(
-            source=source,
+            filename=destination,
             apiPreference=api,
             fourcc=fourcc,
             fps=fps,
             frameSize=(width, height),
         )
-        self.__source: str = source
+        self.__destination: str = destination
         self.__api: int = api
         self.__fourcc: int = fourcc
         self.__fps: float = fps
@@ -204,7 +204,7 @@ class VideoWriter:
         """
         fourcc = cv2.VideoWriter.fourcc(*fourcc_str)
         return cls(
-            source=filename,
+            destination=filename,
             api=cv2.CAP_ANY,
             fourcc=fourcc,
             fps=fps,
@@ -297,7 +297,7 @@ class VideoWriter:
             VideoWriter: A new VideoWriter instance.
         """
         return cls(
-            source=pipeline,
+            destination=pipeline,
             api=cv2.CAP_ANY,
             fourcc=0,
             fps=fps,
@@ -345,7 +345,7 @@ class VideoWriter:
         """
         self.release()
         return self.__writer.open(
-            source=self.__source,
+            filename=self.__destination,
             apiPreference=self.__api,
             fourcc=self.__fourcc,
             fps=self.__fps,
