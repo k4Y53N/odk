@@ -150,7 +150,7 @@ class Image:
                 Defaults to cv2.INTER_LINEAR.
 
         Returns:
-            Image: self.
+            Image: Self.
         """
         if self.width != width or self.height != height:
             self.data = cv2.resize(
@@ -247,7 +247,7 @@ class Image:
             OSError: If the image could not be written to *path*.
 
         Returns:
-            Image: self.
+            Image: Self.
         """
         suffix = Path(path).suffix
         quality_params = get_image_ext_quality(suffix, quality)
@@ -414,7 +414,7 @@ class Image:
             thickness (int, optional): Line thickness in pixels. Defaults to 2.
 
         Returns:
-            Image: self.
+            Image: Self.
         """
         left, top, right, bottom = np.round([left, top, right, bottom]).astype(np.int32)
         cv2.rectangle(
@@ -442,7 +442,7 @@ class Image:
             thickness (int, optional): Line thickness in pixels. Defaults to 2.
 
         Returns:
-            Image: self.
+            Image: Self.
         """
         for bbox in bboxes:
             self.draw_bbox(*bbox, color=color, thickness=thickness)
@@ -467,7 +467,7 @@ class Image:
             thickness (int, optional): Line thickness in pixels. Defaults to 2.
 
         Returns:
-            Image: self.
+            Image: Self.
         """
         points = np.round(points).astype(np.int32)
         cv2.polylines(
@@ -499,7 +499,7 @@ class Image:
             alpha (float, optional): Opacity in the range [0, 1]. Defaults to 1.
 
         Returns:
-            Image: self.
+            Image: Self.
         """
         alpha = np.clip(alpha, 0, 1)
 
@@ -536,7 +536,7 @@ class Image:
                 the circle. Defaults to -1.
 
         Returns:
-            Image: self.
+            Image: Self.
         """
         points = np.round(points).astype(np.int32)
 

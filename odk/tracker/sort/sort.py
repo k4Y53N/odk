@@ -179,8 +179,7 @@ class SortTracker(Tracker):
         return np.empty(0, dtype=np.uint64)
 
     def _when_track_empty(self, bboxes: NDArray[np.float32]) -> NDArray[np.uint64]:
-        next_ids = self._extend_new_track(batch_xyxy_to_xysr(bboxes.copy()))
-        return np.array(next_ids, dtype=np.uint64)
+        return self._extend_new_track(batch_xyxy_to_xysr(bboxes.copy()))
 
     def _remove_timeout(self):
         expire_index = [
