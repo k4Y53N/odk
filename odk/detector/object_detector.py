@@ -1,11 +1,10 @@
 from collections.abc import Iterable, Sequence
 from itertools import islice
-from typing import TypeVar
+from typing import Protocol, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
 
-from ..image import Image
 from .configer import ObjectDetectConfiger, Version
 from .decoder import Decoder, yolo_decoder
 from .detector import Detector
@@ -26,6 +25,10 @@ DECODER_MAP: dict[Version, Decoder[ObjectDetectParams, list[ObjectDetectResult]]
     Version.V11: yolo_decoder.Yolov11Decoder,
 }
 T = TypeVar('T')
+
+
+class Image(Protocol):
+    data: NDArray[np.uint8]
 
 
 def batched(iterable: Iterable[T], size: int) -> Iterable[tuple[T, ...]]:
