@@ -58,6 +58,93 @@ class ObjectTrackInfo:
     def center_point(self) -> tuple[float, float]:
         return self.center_x, self.center_y
 
+    def copy(self) -> 'ObjectTrackInfo':
+        """Return a deep copy of this object info.
+
+        Returns:
+            ObjectTrackInfo: Copied object.
+        """
+        return ObjectTrackInfo(
+            bbox=self.bbox.copy(),
+            track_id=self.track_id,
+            class_id=self.class_id,
+            score=self.score,
+            label=self.label,
+        )
+
+    def add(self, x: float, y: float, inplace: bool = False) -> 'ObjectTrackInfo':
+        """Offset the bounding box by the given amounts.
+
+        Args:
+            x (float): Value to add to the horizontal (left/right) coordinates.
+            y (float): Value to add to the vertical (top/bottom) coordinates.
+            inplace (bool, optional): If True, modify in place; otherwise return a new
+                copy. Defaults to False.
+
+        Returns:
+            ObjectTrackInfo: The offset object.
+        """
+        instance = self
+
+        if not inplace:
+            instance = self.copy()
+
+        instance.bbox[[0, 2]] += x
+        instance.bbox[[1, 3]] += y
+
+        return instance
+
+    def subtract(self, x: float, y: float, inplace: bool = False) -> 'ObjectTrackInfo':
+        """Offset the bounding box by subtracting the given amounts.
+
+        Args:
+            x (float): Value to subtract from the horizontal (left/right) coordinates.
+            y (float): Value to subtract from the vertical (top/bottom) coordinates.
+            inplace (bool, optional): If True, modify in place; otherwise return a new
+                copy. Defaults to False.
+
+        Returns:
+            ObjectTrackInfo: The offset object.
+        """
+        return self.add(-x, -y, inplace)
+
+    def multiply(self, x: float, y: float, inplace: bool = False) -> 'ObjectTrackInfo':
+        """Scale the bounding box by the given factors.
+
+        Args:
+            x (float): Scale factor for the horizontal (left/right) coordinates.
+            y (float): Scale factor for the vertical (top/bottom) coordinates.
+            inplace (bool, optional): If True, modify in place; otherwise return a new
+                copy. Defaults to False.
+
+        Returns:
+            ObjectTrackInfo: The scaled object.
+        """
+
+        instance = self
+
+        if not inplace:
+            instance = self.copy()
+
+        instance.bbox[[0, 2]] *= x
+        instance.bbox[[1, 3]] *= y
+
+        return instance
+
+    def divide(self, x: float, y: float, inplace: bool = False) -> 'ObjectTrackInfo':
+        """Divide the bounding box coordinates by the given factors.
+
+        Args:
+            x (float): Divisor for the horizontal (left/right) coordinates.
+            y (float): Divisor for the vertical (top/bottom) coordinates.
+            inplace (bool, optional): If True, modify in place; otherwise return a new
+                copy. Defaults to False.
+
+        Returns:
+            ObjectTrackInfo: The scaled object.
+        """
+        return self.multiply(1 / x, 1 / y, inplace)
+
 
 @dataclass(slots=True)
 class ObjectTrackResult:
