@@ -10,7 +10,7 @@ __all__ = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class ModelConfiger:
     weight_path: str
 
@@ -33,7 +33,7 @@ class Version(str, Enum):
         return self.value
 
 
-@dataclass
+@dataclass(slots=True)
 class ObjectDetectConfiger(ModelConfiger):
     version: Version
     class_label: list[str]
