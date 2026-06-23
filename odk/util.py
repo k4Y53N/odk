@@ -1,4 +1,5 @@
 from collections.abc import Callable, Generator
+from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps
 from random import randint
@@ -47,6 +48,7 @@ def timeit(func: Callable[P, R]) -> Callable[P, R]:
     return wrapper
 
 
+@dataclass(slots=True)
 class ColorPool:
     RED = (0, 0, 255)
     ORANGE = (0, 127, 255)
@@ -65,17 +67,16 @@ class ColorPool:
     BROWN = (42, 42, 165)
     LIME = (0, 255, 0)
 
-    def __init__(self, pool: tuple[tuple[int, int, int], ...]):
-        self._pool = pool
+    pool: tuple[tuple[int, int, int], ...]
 
     def __len__(self):
-        return len(self._pool)
+        return len(self.pool)
 
     def __getitem__(self, key: int) -> tuple[int, int, int]:
-        return self._pool[int(key) % len(self)]
+        return self.pool[int(key) % len(self)]
 
     def __iter__(self) -> Generator[tuple[int, int, int], None, None]:
-        for color in self._pool:
+        for color in self.pool:
             yield color
 
     @classmethod
