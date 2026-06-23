@@ -18,4 +18,4 @@ class RtspSrc(GstElement):
 @dataclass(slots=True)
 class RtspClientSink(GstElement):
     location: str
-    protocols: Literal['tcp', 'udp', 'udp-mcast' 'tcp+udp-mcast+udp'] | None = None
+    protocols: Literal['tcp', 'udp', 'udp-mcast', 'tcp+udp-mcast+udp'] | None = None
