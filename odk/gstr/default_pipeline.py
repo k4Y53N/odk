@@ -16,6 +16,7 @@ def rtsp_to_app(
 ) -> str:
     pipeline = (
         g.RtspSrc(location=location, protocols=protocols)
+        | g.RawCaps('application/x-rtp', media='video')
         | g.DecodeBin()
         | g.VideoConvert()
     )
