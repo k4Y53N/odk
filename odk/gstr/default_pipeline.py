@@ -22,7 +22,7 @@ def rtsp_to_app(
     )
 
     if fps is not None:
-        pipeline | g.VideoRate(drop_only=True)
+        pipeline | g.VideoRate(max_rate=fps)
 
     pipeline | g.RawVideoBGRCaps(framerate=fps) | g.AppSink(drop=True)
 
@@ -36,7 +36,7 @@ def rtmp_to_app(
     pipeline = g.RtmpSrc(location=location) | g.DecodeBin() | g.VideoConvert()
 
     if fps is not None:
-        pipeline | g.VideoRate(drop_only=True)
+        pipeline | g.VideoRate(max_rate=fps)
 
     pipeline | g.RawVideoBGRCaps(framerate=fps) | g.AppSink(drop=True)
 
