@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from .element import GstElement
-from .util import get_numer_denom_str
+from .util import fraction_str
 
 __all__ = [
     'TextOverlay',
@@ -52,9 +52,7 @@ class TextOverlay(GstElement):
         if not isinstance(self.scale_pixel_aspect_ratio, (int, float)):
             return
 
-        self.scale_pixel_aspect_ratio = get_numer_denom_str(
-            self.scale_pixel_aspect_ratio
-        )
+        self.scale_pixel_aspect_ratio = fraction_str(self.scale_pixel_aspect_ratio)
 
 
 @dataclass(slots=True)

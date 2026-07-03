@@ -1,7 +1,11 @@
 from fractions import Fraction
 
+__all__ = [
+    'fraction_str',
+]
 
-def get_numer_denom_str(num: float) -> str:
+
+def fraction_str(num: float) -> str:
     frac = Fraction(num).limit_denominator()
     numer, denom = frac.numerator, frac.denominator
 
