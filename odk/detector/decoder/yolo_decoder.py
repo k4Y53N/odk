@@ -65,7 +65,14 @@ def xyxy_to_xywh(bboxes: NDArray[np.float32]) -> NDArray[np.float32]:
     return bboxes
 
 
-class YoloDecoder(Decoder[ObjectDetectParams, list[ObjectDetectResult]], ABC):
+BASE = Decoder[
+    Sequence[NDArray[np.uint8]],
+    list[ObjectDetectResult],
+    ObjectDetectParams,
+]
+
+
+class YoloDecoder(BASE, ABC):
     def __init__(self, height: int, width: int):
         self.height: int = height
         self.width: int = width
@@ -77,14 +84,9 @@ class YoloDecoder(Decoder[ObjectDetectParams, list[ObjectDetectResult]], ABC):
 
         return cls(height, width)
 
-    def decode(
-        self,
-        origin_input: Sequence[NDArray],
-        model_output: Sequence[NDArray],
-        params: ObjectDetectParams,
-    ):
+    def decode(self, input, output, params):
         batch_bboxes, batch_scores = self._get_bboxes_and_scores(
-            model_output=model_output,
+            model_output=output,
             score_threshold=params.score_threshold,
         )
         nmses = batch_nms(
@@ -97,7 +99,7 @@ class YoloDecoder(Decoder[ObjectDetectParams, list[ObjectDetectResult]], ABC):
 
         return self._decode_nms(
             nmses=nmses,
-            origin_input=origin_input,
+            origin_input=input,
             class_label=params.class_label,
         )
 

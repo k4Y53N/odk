@@ -46,7 +46,10 @@ class Detector(ABC, Generic[ConfigT, ParamsT, InputT, ResultT]):
 
     @classmethod
     @abstractmethod
-    def get_decoder_class(cls, configer: ConfigT) -> type[Decoder[ParamsT, ResultT]]:
+    def get_decoder_class(
+        cls,
+        configer: ConfigT,
+    ) -> type[Decoder[InputT, ResultT, ParamsT]]:
         """Return the decoder class used for output postprocessing.
 
         Args:
@@ -54,7 +57,7 @@ class Detector(ABC, Generic[ConfigT, ParamsT, InputT, ResultT]):
                 decoder variant is selected.
 
         Returns:
-            type[Decoder[ParamsT, ResultT]]: The decoder class responsible for
+            type[Decoder[InputT, ResultT, ParamsT]]: The decoder class responsible for
                 converting raw model outputs into structured results.
         """
 
@@ -92,8 +95,8 @@ class Detector(ABC, Generic[ConfigT, ParamsT, InputT, ResultT]):
         input_tensors = self._encoder.encode(input=input, params=params)
         output_tensors = self._engine.infer(input_tensors=input_tensors)
         result = self._decoder.decode(
-            origin_input=input,
-            model_output=output_tensors,
+            input=input,
+            output=output_tensors,
             params=params,
         )
 
