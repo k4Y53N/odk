@@ -22,14 +22,10 @@ def get_image_ext_quality(extension: EXTENSION, quality: float) -> list[int]:
         extension (EXTENSION): Image format extension including the leading dot.
         quality (float): Normalized quality value in the range [0, 1].
 
-    Raises:
-        ValueError: If *quality* is not between 0 and 1.
-
     Returns:
         list[int]: A list of OpenCV ``imwrite`` parameter flag and value pairs.
     """
-    if not 0 <= quality <= 1:
-        raise ValueError(f'quality must be between 0 and 1, got {quality}')
+    quality = np.clip(quality, 0, 1)
 
     if extension in {'.jpg', '.jpeg', '.jpe'}:
         return [cv2.IMWRITE_JPEG_QUALITY, round(quality * 100)]

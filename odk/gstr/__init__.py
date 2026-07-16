@@ -18,6 +18,7 @@ from .videoconvertscale import *  # noqa
 @dataclass(slots=True)
 class VideoRate(GstElement):  # noqa
     drop_only: bool | None = None
+    max_rate: int | None = None
 
 
 @dataclass(slots=True)

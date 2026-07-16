@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from .element import GstElement, RawElement
-from .util import get_numer_denom_str
+from .util import fraction_str
 
 __all__ = [
     'RawCaps',
@@ -28,7 +28,7 @@ class VideoCaps(GstElement):
 
     def __post_init__(self):
         if isinstance(self.framerate, (int, float)):
-            self.framerate = get_numer_denom_str(self.framerate)
+            self.framerate = fraction_str(self.framerate)
 
     def separate(self):
         return ','
