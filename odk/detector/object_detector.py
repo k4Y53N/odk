@@ -16,7 +16,12 @@ __all__ = [
     'ObjectDetector',
 ]
 
-BASE = Detector[ObjectDetectConfiger, ObjectDetectParams, list[ObjectDetectResult]]
+BASE = Detector[
+    ObjectDetectConfiger,
+    ObjectDetectParams,
+    Sequence[NDArray[np.uint8]],
+    list[ObjectDetectResult],
+]
 DECODER_MAP: dict[Version, Decoder[ObjectDetectParams, list[ObjectDetectResult]]] = {
     Version.V4: yolo_decoder.Yolov4Decoder,
     Version.V7: yolo_decoder.Yolov7Decoder,
@@ -128,8 +133,8 @@ class ObjectDetector(BASE):
             results = list[ObjectDetectResult]()
 
             for batch_images in batched(images, batch_size):
-                results.extend(self.infer(origin=batch_images, params=params))
+                results.extend(self.infer(input=batch_images, params=params))
 
             return results
 
-        return self.infer(origin=images, params=params)
+        return self.infer(input=images, params=params)

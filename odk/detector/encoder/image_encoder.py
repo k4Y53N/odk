@@ -5,7 +5,6 @@ import cv2
 import numpy as np
 from numpy.typing import DTypeLike, NDArray
 
-from ..engine import Engine
 from .encoder import Encoder
 
 __all__ = [
@@ -13,14 +12,14 @@ __all__ = [
 ]
 
 
-class ImageEncoder(Encoder[Any]):
+class ImageEncoder(Encoder[Sequence[NDArray[np.uint8]], Any]):
     def __init__(self, height: int, width: int, dtype: DTypeLike):
         self.height: int = height
         self.width: int = width
         self.dtype: DTypeLike = dtype
 
     @classmethod
-    def from_engine(cls, engine: Engine) -> 'ImageEncoder':
+    def from_engine(cls, engine) -> 'ImageEncoder':
         input_shape = engine.input_shapes[0]  # [batch, channel, height, width]
         input_dtype = engine.input_dtypes[0]
         height, width = input_shape[2], input_shape[3]
@@ -30,18 +29,14 @@ class ImageEncoder(Encoder[Any]):
 
         return cls(height, width, input_dtype)
 
-    def encode(
-        self,
-        origin_input: Sequence[NDArray[np.uint8]],
-        params: Any,
-    ) -> Sequence[NDArray]:
+    def encode(self, input, params) -> Sequence[NDArray]:
         tensor = [
             (
                 cv2.resize(image, (self.width, self.height))
                 if image.shape[0] != self.height or image.shape[1] != self.width
                 else image
             )
-            for image in origin_input
+            for image in input
         ]
 
         if len(tensor) == 1:
