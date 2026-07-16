@@ -546,3 +546,64 @@ class Image:
             )
 
         return self
+
+    def draw_label_bbox(
+        self,
+        text: str,
+        left: float,
+        top: float,
+        right: float,
+        bottom: float,
+        color: tuple[int, int, int],
+        font_scale: float = 1,
+        font_thickness: int = 1,
+        font_face=cv2.FONT_HERSHEY_DUPLEX,
+        bbox_thickness: int = 2,
+        background: bool = False,
+    ) -> 'Image':
+        """Draw a labelled bounding box on the image.
+
+        Combines :meth:`draw_bbox` and :meth:`draw_text` to render a rectangle with a
+        text label positioned at the top-left corner of the box.
+
+        Args:
+            text (str): Label text to display above the bounding box.
+            left (float): X-coordinate of the left edge, in pixels.
+            top (float): Y-coordinate of the top edge, in pixels.
+            right (float): X-coordinate of the right edge, in pixels.
+            bottom (float): Y-coordinate of the bottom edge, in pixels.
+            color (tuple[int, int, int]): BGR color used for both the rectangle outline
+                and the text.
+            font_scale (float, optional): Font size multiplier. Defaults to 1.
+            font_thickness (int, optional): Thickness of the text strokes in pixels.
+                Defaults to 1.
+            font_face (int, optional): OpenCV font identifier. Defaults to
+                cv2.FONT_HERSHEY_DUPLEX.
+            background (bool, optional): If ``True``, draw a filled rectangle behind
+                the text using the inverted *color* for contrast. Defaults to False.
+            bbox_thickness (int, optional): Line thickness of the bounding box
+                rectangle in pixels. Defaults to 2.
+
+        Returns:
+            Image: Self.
+        """
+        self.draw_bbox(
+            left=left,
+            top=top,
+            right=right,
+            bottom=bottom,
+            color=color,
+            thickness=bbox_thickness,
+        )
+        self.draw_text(
+            text=text,
+            left=left,
+            top=top,
+            color=color,
+            font_scale=font_scale,
+            thickness=font_thickness,
+            font_face=font_face,
+            background=background,
+        )
+
+        return self
