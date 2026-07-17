@@ -9,6 +9,7 @@ from ..params import ObjectDetectParams
 from ..result import ObjectDetectResult
 from .decoder import Decoder
 from .nms import NMS, batch_nms
+from .util import xywh_to_xyxy, xyxy_to_xywh
 
 __all__ = [
     'YoloDecoder',
@@ -43,26 +44,6 @@ def batch_mask_output(
         candidate_scores[i, : len(scores)] = scores
 
     return candidate_bboxes, candidate_scores
-
-
-def xywh_to_xyxy(bboxes: NDArray[np.float32]) -> NDArray[np.float32]:
-    """[x, y, w, h] -> [x1, y1, x2, y2]"""
-    bboxes[..., 0] -= bboxes[..., 2] / 2
-    bboxes[..., 1] -= bboxes[..., 3] / 2
-    bboxes[..., 2] += bboxes[..., 0]
-    bboxes[..., 3] += bboxes[..., 1]
-
-    return bboxes
-
-
-def xyxy_to_xywh(bboxes: NDArray[np.float32]) -> NDArray[np.float32]:
-    """[x1, y1, x2, y2] -> [x, y, w, h]"""
-    bboxes[..., 2] -= bboxes[..., 0]
-    bboxes[..., 3] -= bboxes[..., 1]
-    bboxes[..., 0] += bboxes[..., 2] / 2
-    bboxes[..., 1] += bboxes[..., 3] / 2
-
-    return bboxes
 
 
 BASE = Decoder[
