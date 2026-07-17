@@ -1,5 +1,5 @@
 from .decoder import Decoder
-from .yolo_decoder import (
+from .yolo import (
     YoloDecoder,
     Yolov4Decoder,
     Yolov7Decoder,

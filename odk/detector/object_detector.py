@@ -6,7 +6,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from .configer import ObjectDetectConfiger, Version
-from .decoder import Decoder, yolo_decoder
+from .decoder import Decoder, yolo
 from .detector import Detector
 from .encoder import ImageEncoder
 from .params import ObjectDetectParams
@@ -28,11 +28,11 @@ DECODER_CLASS_MAP: dict[
     Version,
     Decoder[Sequence[NDArray[np.uint8]], list[ObjectDetectResult], ObjectDetectParams],
 ] = {
-    Version.V4: yolo_decoder.Yolov4Decoder,
-    Version.V7: yolo_decoder.Yolov7Decoder,
-    Version.V8: yolo_decoder.Yolov8Decoder,
-    Version.V9: yolo_decoder.Yolov9Decoder,
-    Version.V11: yolo_decoder.Yolov11Decoder,
+    Version.V4: yolo.Yolov4Decoder,
+    Version.V7: yolo.Yolov7Decoder,
+    Version.V8: yolo.Yolov8Decoder,
+    Version.V9: yolo.Yolov9Decoder,
+    Version.V11: yolo.Yolov11Decoder,
 }
 T = TypeVar('T')
 
