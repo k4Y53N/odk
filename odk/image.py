@@ -558,8 +558,8 @@ class Image:
         font_scale: float = 1,
         font_thickness: int = 1,
         font_face=cv2.FONT_HERSHEY_DUPLEX,
-        bbox_thickness: int = 2,
         background: bool = False,
+        bbox_thickness: int = 2,
     ) -> 'Image':
         """Draw a labelled bounding box on the image.
 
