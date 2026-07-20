@@ -1,21 +1,19 @@
 from .decoder import Decoder
+from .rfdetr import RFDetrDecoder
 from .yolo import (
-    YoloDecoder,
     Yolov4Decoder,
     Yolov7Decoder,
     Yolov8Decoder,
     Yolov9Decoder,
     Yolov11Decoder,
-    YolovXDecoder,
 )
 
 __all__ = [
     'Decoder',
-    'YoloDecoder',
+    'RFDetrDecoder',
     'Yolov4Decoder',
     'Yolov7Decoder',
     'Yolov8Decoder',
     'Yolov9Decoder',
     'Yolov11Decoder',
-    'YolovXDecoder',
 ]
