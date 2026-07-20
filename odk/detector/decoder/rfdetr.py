@@ -27,7 +27,7 @@ class RFDetrDecoder(BASE):
 
     def decode(self, input, output, params):
         # bbox = [batch size, N, 4]
-        # classes = [batch size, N, num classes + 1 (last is background)]
+        # scores = [batch size, N, num classes + 1 (last is background)]
         batch_bboxes, batch_scores = output
         batch_size = batch_scores.shape[0]
         num_anchors = batch_scores.shape[1]
