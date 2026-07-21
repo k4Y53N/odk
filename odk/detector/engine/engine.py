@@ -25,12 +25,12 @@ class Engine(ABC):
         """
 
     @abstractmethod
-    def infer(self, input_tensors: Sequence[NDArray]) -> Sequence[NDArray]:
+    def infer(self, tensors: Sequence[NDArray]) -> Sequence[NDArray]:
         """Run inference on the loaded model with the given input arrays.
 
         Args:
-            input_tensors (Sequence[NDArray]): A sequence of NumPy arrays, one per
-                model input, matching the expected input shapes and dtypes.
+            tensors (Sequence[NDArray]): A sequence of NumPy arrays, one per model
+                input, matching the expected input shapes and dtypes.
 
         Returns:
             Sequence[NDArray]: A sequence of NumPy arrays containing the model outputs.
