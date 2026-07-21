@@ -28,6 +28,7 @@ class Version(str, Enum):
     V8 = 'v8'
     V9 = 'v9'
     V11 = 'v11'
+    RF_DETR = 'rf-detr'
 
     def __str__(self) -> str:
         return self.value

@@ -93,7 +93,7 @@ class Detector(ABC, Generic[ConfigT, ParamsT, InputT, ResultT]):
             ResultT: Structured results produced by the decoder.
         """
         input_tensors = self._encoder.encode(input=input, params=params)
-        output_tensors = self._engine.infer(input_tensors=input_tensors)
+        output_tensors = self._engine.infer(tensors=input_tensors)
         result = self._decoder.decode(
             input=input,
             output=output_tensors,

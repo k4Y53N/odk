@@ -5,8 +5,9 @@ from typing import Protocol, TypeVar
 import numpy as np
 from numpy.typing import NDArray
 
+from . import decoder
 from .configer import ObjectDetectConfiger, Version
-from .decoder import Decoder, yolo_decoder
+from .decoder import Decoder
 from .detector import Detector
 from .encoder import ImageEncoder
 from .params import ObjectDetectParams
@@ -26,13 +27,18 @@ BASE = Detector[
 
 DECODER_CLASS_MAP: dict[
     Version,
-    Decoder[Sequence[NDArray[np.uint8]], list[ObjectDetectResult], ObjectDetectParams],
+    Decoder[
+        Sequence[NDArray[np.uint8]],
+        list[ObjectDetectResult],
+        ObjectDetectParams,
+    ],
 ] = {
-    Version.V4: yolo_decoder.Yolov4Decoder,
-    Version.V7: yolo_decoder.Yolov7Decoder,
-    Version.V8: yolo_decoder.Yolov8Decoder,
-    Version.V9: yolo_decoder.Yolov9Decoder,
-    Version.V11: yolo_decoder.Yolov11Decoder,
+    Version.V4: decoder.Yolov4Decoder,
+    Version.V7: decoder.Yolov7Decoder,
+    Version.V8: decoder.Yolov8Decoder,
+    Version.V9: decoder.Yolov9Decoder,
+    Version.V11: decoder.Yolov11Decoder,
+    Version.RF_DETR: decoder.RFDetrDecoder,
 }
 T = TypeVar('T')
 

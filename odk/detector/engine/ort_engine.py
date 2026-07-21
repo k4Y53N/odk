@@ -34,12 +34,8 @@ class OrtEngine(Engine):
             )
         )
 
-    def infer(self, input_tensors: Sequence[NDArray]) -> Sequence[NDArray]:
-        input_feed = {
-            input_name: input_tensor
-            for input_name, input_tensor in zip(self.input_names, input_tensors)
-        }
-
+    def infer(self, tensors: Sequence[NDArray]) -> Sequence[NDArray]:
+        input_feed = {name: tensor for name, tensor in zip(self.input_names, tensors)}
         return tuple(self.session.run(None, input_feed))
 
     @property
