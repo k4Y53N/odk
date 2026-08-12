@@ -1,18 +1,107 @@
-from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 import lap
 import numpy as np
 from numpy.typing import NDArray
 
-from ..tracker import Tracker
-from .kalman_tracker import KalmanTrack
+from .tracker import Tracker
 
 __all__ = [
     'SortTracker',
 ]
 
 UINT64_MAX = 2**64 - 1
+
+_dim_x = 7
+_dim_z = 4
+_F = np.array(
+    [
+        [1, 0, 0, 0, 1, 0, 0],
+        [0, 1, 0, 0, 0, 1, 0],
+        [0, 0, 1, 0, 0, 0, 1],
+        [0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 1],
+    ],
+    dtype=np.float32,
+)
+_H = np.array(
+    [
+        [1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0],
+    ],
+    dtype=np.float32,
+)
+_P = np.eye(_dim_x, dtype=np.float32)
+_Q = np.eye(_dim_x, dtype=np.float32)
+_R = np.eye(_dim_z, dtype=np.float32)
+_I = np.eye(_dim_x, dtype=np.float32)
+
+
+_R[2:, 2:] *= 10.0
+_P[4:, 4:] *= 1000.0
+_P *= 10.0
+_Q[-1, -1] *= 0.01
+_Q[4:, 4:] *= 0.01
+
+
+class KalmanTracker:
+    """Fixed-capacity SORT Kalman states stored as a structure of arrays.
+
+    The second axis of ``x`` identifies a track slot, so each state component
+    is contiguous in memory. Slots are initialized, predicted, updated, and
+    projected by their integer indices; the backing arrays never grow or move.
+    """
+
+    def __init__(self, capacity: int):
+        self.x = np.zeros((_dim_x, capacity), dtype=np.float32)
+        self.P = np.zeros((capacity, _dim_x, _dim_x), dtype=np.float32)
+
+    def assign(self, indices: NDArray[np.int_], xysr: NDArray[np.float32]):
+        """Initialize fixed slots from ``[x, y, scale, ratio]`` measurements."""
+        self.x[:, indices] = 0.0
+        self.x[:_dim_z, indices] = xysr.T
+        self.P[indices] = _P
+
+    def project(self, indices: NDArray[np.int_]) -> NDArray[np.float32]:
+        """Return measurement-space states for the requested slots."""
+        return self.x[:_dim_z, indices].T
+
+    def predict(self, indices: NDArray[np.int_]):
+        """Predict the state of the requested slots."""
+        x = self.x[:, indices]
+        invalid_scale = x[6] + x[2] <= 0
+        x[6, invalid_scale] = 0.0
+        # x = Fx
+        x = _F @ x
+        # P = FPF' + Q
+        self.x[:, indices] = x
+        self.P[indices] = _F @ self.P[indices] @ _F.T + _Q
+
+    def update(self, indices: NDArray[np.int_], z: NDArray[np.float32]):
+        """Update selected tracks with the corresponding measurement rows."""
+        if not len(indices):
+            return
+
+        x = self.x[:, indices].T
+        P = self.P[indices]
+        # y = z - Hx (Residual between measurement and prediction)
+        y = z - x[:, :_dim_z]
+        PHT = P @ _H.T
+        # S = HPH' + R (Project system uncertainty into measurement space)
+        S = _H @ PHT + _R
+        # K = PH'S^-1  (map system uncertainty into Kalman gain)
+        K = np.linalg.solve(S, PHT.swapaxes(1, 2)).swapaxes(1, 2)
+        # x = x + Ky  (predict new x with residual scaled by the Kalman gain)
+        x += (K @ y[..., None])[..., 0]
+        # P = (I-KH)P
+        I_KH = _I - K @ _H
+        P = I_KH @ P
+        self.x[:, indices] = x.T
+        self.P[indices] = P
 
 
 def batch_xysr_to_xyxy(xysr: NDArray[np.float32]) -> NDArray[np.float32]:
@@ -103,37 +192,28 @@ def batch_iou(a: NDArray[np.float32], b: NDArray[np.float32]) -> NDArray[np.floa
 
 
 @dataclass(slots=True)
-class Track:
-    track_id: int
-    frame: int
-    kalman_track: KalmanTrack
-
-    @classmethod
-    def from_xysr(cls, track_id: int, frame: int, xysr: NDArray[np.float32]) -> 'Track':
-        return Track(
-            track_id=track_id,
-            frame=frame,
-            kalman_track=KalmanTrack(xysr),
-        )
-
-    def predict(self) -> NDArray[np.float32]:
-        self.kalman_track.predict()
-        return self.kalman_track.project()
-
-    def update(self, xysr: NDArray[np.float32]) -> NDArray[np.float32]:
-        self.kalman_track.update(xysr)
-
-
-@dataclass(slots=True)
 class SortTracker(Tracker):
     threshold: float = 0.3
+    capacity: int = 1024
     _frame: int = 0
     _track_id: int = 0
-    _tracks: list[Track] = field(default_factory=list[Track])
+    _kalman: KalmanTracker = field(init=False)
+    _active: NDArray[np.bool_] = field(init=False)
+    _track_ids: NDArray[np.uint64] = field(init=False)
+    _track_frames: NDArray[np.int_] = field(init=False)
+
+    def __post_init__(self):
+        if self.capacity <= 0:
+            raise ValueError('capacity must be positive')
+
+        self._kalman = KalmanTracker(self.capacity)
+        self._active = np.zeros(self.capacity, dtype=np.bool_)
+        self._track_ids = np.zeros(self.capacity, dtype=np.uint64)
+        self._track_frames = np.zeros(self.capacity, dtype=np.int_)
 
     def __len__(self):
         """Return the number of currently active tracks."""
-        return len(self._tracks)
+        return int(np.count_nonzero(self._active))
 
     def update(
         self,
@@ -147,16 +227,15 @@ class SortTracker(Tracker):
         if not detect_length:
             return self._when_detect_empty()
 
-        if not len(self):
+        self._remove_timeout()
+
+        if np.all(~self._active):
             return self._when_track_empty(bboxes)
 
-        self._remove_timeout()
-        track_xysrs = np.empty((len(self), 4), dtype=np.float32)
-        buff_ids = np.empty(len(self), dtype=np.uint64)
-
-        for i, track in enumerate(self._tracks):
-            track_xysrs[i] = track.predict()
-            buff_ids[i] = track.track_id
+        slots = np.where(self._active)[0]
+        self._kalman.predict(slots)
+        track_xysrs = self._kalman.project(slots)
+        buff_ids = self._track_ids[slots]
 
         track_bboxes = batch_xysr_to_xyxy(track_xysrs)
         iou = batch_iou(track_bboxes, bboxes)
@@ -166,7 +245,7 @@ class SortTracker(Tracker):
         not_match_mask = np.full(detect_length, True, dtype=np.bool_)
         not_match_mask[match_detect] = False
         xysrs = batch_xyxy_to_xysr(bboxes.copy())
-        self._assign_track(match_track, xysrs[match_detect])
+        self._assign_track(slots[match_track], xysrs[match_detect])
         new_track_ids = self._extend_new_track(xysrs[not_match_mask])
         track_ids = np.empty(detect_length, dtype=np.uint64)
         track_ids[match_detect] = buff_ids[match_track]
@@ -182,14 +261,8 @@ class SortTracker(Tracker):
         return self._extend_new_track(batch_xyxy_to_xysr(bboxes.copy()))
 
     def _remove_timeout(self):
-        expire_index = [
-            i
-            for i, track in enumerate(self._tracks)
-            if (self._frame - track.frame) > self.timeout
-        ]
-
-        for index in expire_index[::-1]:
-            self._tracks.pop(index)
+        expired = self._active & ((self._frame - self._track_frames) > self.timeout)
+        self._active[expired] = False
 
     def _next_id(self, offset: int) -> NDArray[np.uint64]:
         ids = np.arange(offset, dtype=np.uint64) + np.uint64(self._track_id)
@@ -197,21 +270,24 @@ class SortTracker(Tracker):
 
         return ids
 
-    def _assign_track(self, track_indices: Sequence[int], xysrs: NDArray[np.float32]):
-        for index, xysr in zip(track_indices, xysrs):
-            track = self._tracks[index]
-            track.update(xysr)
-            track.frame = self._frame
+    def _assign_track(
+        self,
+        track_indices: NDArray[np.int_],
+        xysrs: NDArray[np.float32],
+    ):
+        self._kalman.update(track_indices, xysrs)
+        self._track_frames[track_indices] = self._frame
 
     def _extend_new_track(self, xysrs: NDArray[np.float32]) -> NDArray[np.uint64]:
+        slots = np.where(~self._active)[0][: len(xysrs)]
+
+        if len(slots) != len(xysrs):
+            raise RuntimeError(f'SORT tracker capacity ({self.capacity}) exceeded')
+
         next_ids = self._next_id(len(xysrs))
-        self._tracks.extend(
-            Track.from_xysr(
-                track_id=track_id,
-                frame=self._frame,
-                xysr=xysr,
-            )
-            for xysr, track_id in zip(xysrs, next_ids)
-        )
+        self._kalman.assign(slots, xysrs)
+        self._active[slots] = True
+        self._track_ids[slots] = next_ids
+        self._track_frames[slots] = self._frame
 
         return next_ids
