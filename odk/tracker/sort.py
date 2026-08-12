@@ -200,7 +200,7 @@ class SortTracker(Tracker):
     _kalman: KalmanTracker = field(init=False)
     _active: NDArray[np.bool_] = field(init=False)
     _track_ids: NDArray[np.uint64] = field(init=False)
-    _track_frames: NDArray[np.int_] = field(init=False)
+    _track_frames: NDArray[np.uint64] = field(init=False)
 
     def __post_init__(self):
         if self.capacity <= 0:
@@ -209,7 +209,7 @@ class SortTracker(Tracker):
         self._kalman = KalmanTracker(self.capacity)
         self._active = np.zeros(self.capacity, dtype=np.bool_)
         self._track_ids = np.zeros(self.capacity, dtype=np.uint64)
-        self._track_frames = np.zeros(self.capacity, dtype=np.int_)
+        self._track_frames = np.zeros(self.capacity, dtype=np.uint64)
 
     def __len__(self):
         """Return the number of currently active tracks."""
