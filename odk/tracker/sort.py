@@ -279,12 +279,23 @@ class SortTracker(Tracker):
         self._track_frames[track_indices] = self._frame
 
     def _extend_new_track(self, xysrs: NDArray[np.float32]) -> NDArray[np.uint64]:
-        slots = np.where(~self._active)[0][: len(xysrs)]
+        len_xysr = len(xysrs)
 
-        if len(slots) != len(xysrs):
-            raise RuntimeError(f'SORT tracker capacity ({self.capacity}) exceeded')
+        if len_xysr > self.capacity:
+            raise RuntimeError(
+                f'Cannot assign {len_xysr} tracks to capacity {self.capacity}'
+            )
 
-        next_ids = self._next_id(len(xysrs))
+        free_slots = np.where(~self._active)[0]
+        slots = free_slots[:len_xysr]
+        missing = len_xysr - len(slots)
+
+        if missing:
+            active_slots = np.where(self._active)[0]
+            oldest = np.argsort(self._track_frames[active_slots])[:missing]
+            slots = np.concatenate((slots, active_slots[oldest]))
+
+        next_ids = self._next_id(len_xysr)
         self._kalman.assign(slots, xysrs)
         self._active[slots] = True
         self._track_ids[slots] = next_ids
