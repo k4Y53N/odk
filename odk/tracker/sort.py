@@ -58,10 +58,10 @@ class KalmanTracker:
         self.x = np.zeros((_dim_x, self.capacity), dtype=np.float32)
         self.P = np.zeros((self.capacity, _dim_x, _dim_x), dtype=np.float32)
 
-    def assign(self, indices: NDArray[np.int_], xysr: NDArray[np.float32]):
+    def assign(self, indices: NDArray[np.int_], xysrs: NDArray[np.float32]):
         """Initialize fixed slots from ``[x, y, scale, ratio]`` measurements."""
         self.x[:, indices] = 0.0
-        self.x[:_dim_z, indices] = xysr.T
+        self.x[:_dim_z, indices] = xysrs.T
         self.P[indices] = _P
 
     def project(self, indices: NDArray[np.int_]) -> NDArray[np.float32]:
