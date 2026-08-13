@@ -232,10 +232,10 @@ class SortTracker(Tracker):
         if np.all(~self._active):
             return self._when_track_empty(bboxes)
 
-        slots = np.where(self._active)[0]
-        self._kalman.predict(slots)
-        track_xysrs = self._kalman.project(slots)
-        buff_ids = self._track_ids[slots]
+        active_slots = self._get_slots(True)
+        self._kalman.predict(active_slots)
+        track_xysrs = self._kalman.project(active_slots)
+        buff_ids = self._track_ids[active_slots]
 
         track_bboxes = batch_xysr_to_xyxy(track_xysrs)
         iou = batch_iou(track_bboxes, bboxes)
@@ -245,7 +245,7 @@ class SortTracker(Tracker):
         not_match_mask = np.full(detect_length, True, dtype=np.bool_)
         not_match_mask[match_detect] = False
         xysrs = batch_xyxy_to_xysr(bboxes.copy())
-        self._assign_track(slots[match_track], xysrs[match_detect])
+        self._assign_track(active_slots[match_track], xysrs[match_detect])
         new_track_ids = self._extend_new_track(xysrs[not_match_mask])
         track_ids = np.empty(detect_length, dtype=np.uint64)
         track_ids[match_detect] = buff_ids[match_track]
@@ -263,6 +263,12 @@ class SortTracker(Tracker):
     def _remove_timeout(self):
         expired = self._active & ((self._frame - self._track_frames) > self.timeout)
         self._active[expired] = False
+
+    def _get_slots(self, active: bool) -> NDArray[np.int_]:
+        if active:
+            return np.where(self._active)[0]
+
+        return np.where(~self._active)[0]
 
     def _next_id(self, offset: int) -> NDArray[np.uint64]:
         ids = np.arange(offset, dtype=np.uint64) + np.uint64(self._track_id)
@@ -286,12 +292,12 @@ class SortTracker(Tracker):
                 f'Cannot assign {len_xysr} tracks to capacity {self.capacity}'
             )
 
-        free_slots = np.where(~self._active)[0]
+        free_slots = self._get_slots(False)
         slots = free_slots[:len_xysr]
         missing = len_xysr - len(slots)
 
         if missing:
-            active_slots = np.where(self._active)[0]
+            active_slots = self._get_slots(True)
             oldest = np.argsort(self._track_frames[active_slots])[:missing]
             slots = np.concatenate((slots, active_slots[oldest]))
 
