@@ -27,8 +27,7 @@ class Tracker(ABC):
             ``[left, top, right, bottom]`` pixel coordinates.
             classes (NDArray[np.uint16]): Class IDs of shape ``(N,)`` for each
                 detection.
-            scores (NDArray[np.float32]): Scores of shape ``(N,)`` for
-                each detection.
+            scores (NDArray[np.float32]): Scores of shape ``(N,)`` for each detection.
 
         Returns:
             NDArray[np.uint64]: Track IDs of shape ``(N,)``.

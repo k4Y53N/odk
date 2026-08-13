@@ -146,18 +146,15 @@ def batch_xyxy_to_xysr(xyxy: NDArray[np.float32]) -> NDArray[np.float32]:
 def linear_sum_assignment(
     iou_matrix: NDArray[np.float32],
 ) -> tuple[NDArray[np.int_], NDArray[np.int_]]:
-    """Solve the linear sum assignment problem using the Jonker-Volgenant algorithm.
-
-    Finds the optimal assignment that minimizes the total cost in the given
-    cost matrix. Used to match detections to tracked objects.
+    """Solve the linear sum assignment problem.
 
     Args:
         iou_matrix (NDArray[np.float32]): [N, M] cost matrix where N is the number
             of existing tracks and M is the number of new detections.
 
     Returns:
-        tuple[NDArray[np.int_], NDArray[np.int_]]: A tuple of (row_indices, col_indices)
-            representing the optimal assignment pairs.
+        tuple[NDArray[np.int_], NDArray[np.int_]]: A tuple of
+            (row_indices, col_indices) representing the optimal assignment pairs.
     """
     _, x, _ = lap.lapjv(iou_matrix, extend_cost=True)
     row = np.where(x >= 0)[0]
@@ -167,7 +164,7 @@ def linear_sum_assignment(
 
 
 def batch_iou(a: NDArray[np.float32], b: NDArray[np.float32]) -> NDArray[np.float32]:
-    """Computes IOU between two sets of bboxes in [x1, y1, x2, y2] format.
+    """Computes IOU between two sets of bboxes in [left, top, right, bottom] format.
 
     Args:
         a (NDArray[np.float32]): [N, 4] bounding boxes.
@@ -287,7 +284,7 @@ class SortTracker(Tracker):
 
         if len_xysr > self.capacity:
             raise RuntimeError(
-                f'Cannot assign {len_xysr} tracks to capacity {self.capacity}'
+                f'Cannot assign {len_xysr} tracks to capacity {self.capacity}.'
             )
 
         free_slots = self._get_slots(False)
