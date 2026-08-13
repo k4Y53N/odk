@@ -48,17 +48,15 @@ _Q[-1, -1] *= 0.01
 _Q[4:, 4:] *= 0.01
 
 
+@dataclass(slots=True)
 class KalmanTracker:
-    """Fixed-capacity SORT Kalman states stored as a structure of arrays.
+    capacity: int
+    x: NDArray[np.float32] = field(init=False)
+    P: NDArray[np.float32] = field(init=False)
 
-    The second axis of ``x`` identifies a track slot, so each state component
-    is contiguous in memory. Slots are initialized, predicted, updated, and
-    projected by their integer indices; the backing arrays never grow or move.
-    """
-
-    def __init__(self, capacity: int):
-        self.x = np.zeros((_dim_x, capacity), dtype=np.float32)
-        self.P = np.zeros((capacity, _dim_x, _dim_x), dtype=np.float32)
+    def __post_init__(self):
+        self.x = np.zeros((_dim_x, self.capacity), dtype=np.float32)
+        self.P = np.zeros((self.capacity, _dim_x, _dim_x), dtype=np.float32)
 
     def assign(self, indices: NDArray[np.int_], xysr: NDArray[np.float32]):
         """Initialize fixed slots from ``[x, y, scale, ratio]`` measurements."""
