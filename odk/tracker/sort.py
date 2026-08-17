@@ -75,8 +75,8 @@ class KalmanTracker:
         x[6, invalid_scale] = 0.0
         # x = Fx
         x = _F @ x
-        # P = FPF' + Q
         self.x[:, indices] = x
+        # P = FPF' + Q
         self.P[indices] = _F @ self.P[indices] @ _F.T + _Q
 
     def update(self, indices: NDArray[np.int_], z: NDArray[np.float32]):
@@ -157,7 +157,7 @@ def linear_sum_assignment(
             (row_indices, col_indices) representing the optimal assignment pairs.
     """
     _, x, _ = lap.lapjv(iou_matrix, extend_cost=True)
-    row = np.where(x >= 0)[0]
+    row = np.flatnonzero(x >= 0)
     col = x[row]
 
     return row, col
@@ -223,15 +223,14 @@ class SortTracker(Tracker):
             return self._when_detect_empty()
 
         self._remove_timeout()
+        active_slots = self._get_slots(True)
 
-        if np.all(~self._active):
+        if not active_slots.size:
             return self._when_track_empty(bboxes)
 
-        active_slots = self._get_slots(True)
         self._kalman.predict(active_slots)
         track_xysrs = self._kalman.project(active_slots)
         buff_ids = self._track_ids[active_slots]
-
         track_bboxes = batch_xysr_to_xyxy(track_xysrs)
         iou = batch_iou(track_bboxes, bboxes)
         match_track, match_detect = linear_sum_assignment(-iou)
@@ -261,9 +260,9 @@ class SortTracker(Tracker):
 
     def _get_slots(self, active: bool) -> NDArray[np.int_]:
         if active:
-            return np.where(self._active)[0]
+            return np.flatnonzero(self._active)
 
-        return np.where(~self._active)[0]
+        return np.flatnonzero(~self._active)
 
     def _next_id(self, offset: int) -> NDArray[np.uint64]:
         ids = np.arange(offset, dtype=np.uint64) + np.uint64(self._track_id)
