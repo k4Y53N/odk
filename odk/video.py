@@ -298,7 +298,7 @@ class VideoWriter:
         """
         return cls(
             destination=pipeline,
-            api=cv2.CAP_ANY,
+            api=cv2.CAP_GSTREAMER,
             fourcc=0,
             fps=fps,
             width=width,
