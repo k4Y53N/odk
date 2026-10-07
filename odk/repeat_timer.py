@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from threading import Event, Lock, Thread
 from typing import ParamSpec, TypeVar
 
 __all__ = [
+    'Hook',
     'RepeatTimer',
 ]
 
@@ -41,22 +42,21 @@ class RepeatTimer(Thread, ABC):
         self.__lock = Lock()
         self.__enter_hooks = list[Hook]()
         self.__exit_hooks = list[Hook]()
+        self.__before_routine_hooks = list[Hook]()
+        self.__after_routine_hooks = list[Hook]()
 
     def __enter__(self):
-        for hook in self.__enter_hooks:
-            hook.run()
-
+        self.execute_hooks(self.__enter_hooks)
         self.__enter_hooks.clear()
         self.before()
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         self.close()
         self.after()
-
-        for hook in self.__exit_hooks:
-            hook.run()
-
+        self.execute_hooks(self.__exit_hooks)
         self.__exit_hooks.clear()
+        self.__before_routine_hooks.clear()
+        self.__after_routine_hooks.clear()
 
         return False
 
@@ -97,7 +97,9 @@ class RepeatTimer(Thread, ABC):
         """
         with self:
             while self.is_active(self.__interval):
+                self.execute_hooks(self.__before_routine_hooks)
                 self.routine()
+                self.execute_hooks(self.__after_routine_hooks)
 
     def start(self):
         with self.__lock:
@@ -154,3 +156,48 @@ class RepeatTimer(Thread, ABC):
             **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
         """
         self.__exit_hooks.append(Hook(fn, *args, **kwargs))
+
+    def add_before_routine_hook(
+        self,
+        fn: Callable[P, R],
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ):
+        """Register a callback to run before each timer tick.
+
+        The hook is executed in registration order immediately before
+        :meth:`routine` on every active loop iteration.
+
+        Args:
+            fn (Callable[P, R]): Callback to execute before each timer tick.
+            *args (P.args): Positional arguments passed to ``fn``.
+            **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
+        """
+        self.__before_routine_hooks.append(Hook(fn, *args, **kwargs))
+
+    def add_after_routine_hook(
+        self,
+        fn: Callable[P, R],
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ):
+        """Register a callback to run after each timer tick.
+
+        The hook is executed in registration order immediately after
+        :meth:`routine` on every active loop iteration.
+
+        Args:
+            fn (Callable[P, R]): Callback to execute after each timer tick.
+            *args (P.args): Positional arguments passed to ``fn``.
+            **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
+        """
+        self.__after_routine_hooks.append(Hook(fn, *args, **kwargs))
+
+    def execute_hooks(self, hooks: Iterable[Hook]):
+        """Run each hook in iteration order.
+
+        Args:
+            hooks (Iterable[Hook]): Hooks to execute.
+        """
+        for hook in hooks:
+            hook.run()
