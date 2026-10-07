@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any, Concatenate, ParamSpec, TypeVar
+from typing import Concatenate, ParamSpec, TypeVar
 
 from .node import Node
 
@@ -51,7 +51,7 @@ class Flow:
     def call(
         self,
         skip_standalone: bool,
-        method: Callable[Concatenate[Node, P], Any],
+        method: Callable[Concatenate[Node, P], R],
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> bool:
@@ -59,7 +59,7 @@ class Flow:
 
         Args:
             skip_standalone (bool): If True, skip nodes marked as standalone.
-            method (Callable[Concatenate[Node, P], Any]): The node method to call on each
+            method (Callable[Concatenate[Node, P], R]): The node method to call on each
                 node.
             *args (P.args): Positional arguments to pass to the method.
             **kwargs (P.kwargs): Keyword arguments to pass to the method.
