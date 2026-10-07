@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable
 from threading import Event, Lock, Thread
-from typing import ParamSpec, TypeVar
+from typing import Generic, ParamSpec, TypeVar
 
 __all__ = [
     'Hook',
@@ -13,13 +13,13 @@ P = ParamSpec('P')
 R = TypeVar('R')
 
 
-class Hook:
+class Hook(Generic[P, R]):
     def __init__(self, fn: Callable[P, R], *args: P.args, **kwargs: P.kwargs):
         self.fn = fn
         self.args = args
         self.kwargs = kwargs
 
-    def run(self):
+    def run(self) -> R:
         return self.fn(*self.args, **self.kwargs)
 
 
