@@ -2,6 +2,7 @@ from collections.abc import Callable
 from typing import Concatenate, ParamSpec, TypeVar
 
 from .node import Node
+from .repeat_timer import Hook
 
 __all__ = [
     'Flow',
@@ -10,20 +11,6 @@ __all__ = [
 
 P = ParamSpec('P')
 R = TypeVar('R')
-
-
-class Hook:
-    def __init__(self, fn: Callable[P, R], *args: P.args, **kwargs: P.kwargs):
-        """Create a hook with a callable and its arguments.
-
-        Args:
-            fn (Callable[P, R]): The function to invoke when the hook is triggered.
-            *args: Positional arguments to pass to the function.
-            **kwargs: Keyword arguments to pass to the function.
-        """
-        self.fn = fn
-        self.args = args
-        self.kwargs = kwargs
 
 
 class Flow:
@@ -164,6 +151,38 @@ class Flow:
         self.call(
             skip_standalone,
             Node.add_exit_hook,
+            hook.fn,
+            *hook.args,
+            **hook.kwargs,
+        )
+
+    def add_before_routine_hook(self, hook: Hook, skip_standalone: bool = True):
+        """Register a hook that runs before each node routine.
+
+        Args:
+            hook (Hook): The hook to register before a node routine executes.
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
+                Defaults to True.
+        """
+        self.call(
+            skip_standalone,
+            Node.add_before_routine_hook,
+            hook.fn,
+            *hook.args,
+            **hook.kwargs,
+        )
+
+    def add_after_routine_hook(self, hook: Hook, skip_standalone: bool = True):
+        """Register a hook that runs after each node routine.
+
+        Args:
+            hook (Hook): The hook to register after a node routine executes.
+            skip_standalone (bool, optional): If True, skip nodes marked as standalone.
+                Defaults to True.
+        """
+        self.call(
+            skip_standalone,
+            Node.add_after_routine_hook,
             hook.fn,
             *hook.args,
             **hook.kwargs,
