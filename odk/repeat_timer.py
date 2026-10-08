@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable
 from threading import Event, Lock, Thread
 from typing import Generic, ParamSpec, TypeVar
@@ -23,7 +22,7 @@ class Hook(Generic[P, R]):
         return self.fn(*self.args, **self.kwargs)
 
 
-class RepeatTimer(Thread, ABC):
+class RepeatTimer(Thread):
     def __init__(self, interval: int = 0, *args, **kwargs):
         """Initialize the repeat timer thread.
 
@@ -65,13 +64,11 @@ class RepeatTimer(Thread, ABC):
         """Thread lock used to protect timer operations."""
         return self.__lock
 
-    @abstractmethod
     def routine(self):
-        """Run one timer tick.
+        """Perform one unit of work for an active timer tick.
 
-        This method is invoked repeatedly by :meth:`run` while the timer is
-        active, waiting ``interval`` seconds between invocations. Subclasses
-        must implement the work to perform for each tick.
+        Override in subclasses to provide the work that runs after before-tick
+        hooks and before after-tick hooks on each timer iteration.
         """
 
     def before(self):
