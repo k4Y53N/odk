@@ -1,8 +1,8 @@
 from collections.abc import Callable
 from typing import Concatenate, ParamSpec, TypeVar
 
+from .lifecycle import Hook
 from .node import Node
-from .repeat_timer import Hook
 
 __all__ = [
     'Flow',
