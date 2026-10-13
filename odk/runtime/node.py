@@ -30,7 +30,7 @@ class NodeWorker(RepeatTimer, Generic[IN, OUT]):
         node: 'NodeProto[IN, OUT]',
         buff_size: int = 3,
         timeout: float | None = 1,
-        retry: int | float = 0,
+        retry: int = 0,
         standalone: bool = False,
         name: str = 'NODE',
         interval: int = 0,
@@ -316,6 +316,9 @@ class NodeWorker(RepeatTimer, Generic[IN, OUT]):
 
 
 class Node(NodeProto[IN, OUT], ABC):
+    def __init__(self):
+        super().__init__()
+
     @abstractmethod
     def process(self, item: IN | None) -> OUT | None: ...
 
@@ -323,7 +326,7 @@ class Node(NodeProto[IN, OUT], ABC):
         self,
         buff_size: int = 3,
         timeout: float | None = 1,
-        retry: int | float = 0,
+        retry: int = 0,
         standalone: bool = False,
         name: str = 'NODE',
         interval: int = 0,
