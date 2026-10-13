@@ -1,0 +1,62 @@
+from contextlib import ExitStack
+from typing import Any, Generic, TypeVar
+
+from .node import Node
+from .repeat_timer import RepeatTimer
+
+IN = TypeVar('IN')
+OUT = TypeVar('OUT')
+
+
+__all__ = [
+    'Chain',
+]
+
+
+class Chain(RepeatTimer, Generic[IN, OUT]):
+    def __init__(
+        self,
+        nodes: list['Node[Any, Any]'],
+        interval: float = 0,
+        *args,
+        **kwargs,
+    ):
+        if not nodes:
+            raise ValueError('Chain requires at least one node.')
+
+        super().__init__(interval, *args, **kwargs)
+        self.nodes = nodes
+        self.__node_contexts: ExitStack | None = None
+
+    def __enter__(self):
+        super().__enter__()
+        self.__node_contexts = ExitStack()
+
+        try:
+            for node in self.nodes:
+                self.__node_contexts.enter_context(node)
+        except BaseException:
+            self.__node_contexts.close()
+            self.__node_contexts = None
+            super().__exit__(None, None, None)
+            raise
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        super().__exit__(exc_type, exc_val, exc_tb)
+
+        if self.__node_contexts is not None:
+            self.__node_contexts.close()
+            self.__node_contexts = None
+
+    def routine(self):
+        self.process(None)
+
+    def process(self, item: IN | None) -> OUT | None:
+        for node in self.nodes:
+            node.execute_before_routine_hooks()
+            item = node.process(item)
+            node.execute_after_routine_hooks()
+
+        return item
