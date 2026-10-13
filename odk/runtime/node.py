@@ -83,10 +83,12 @@ class NodeWorker(RepeatTimer, Generic[IN, OUT]):
         return self
 
     def __enter__(self):
+        self.__node.__enter__()
         return super().__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         super().__exit__(exc_type, exc_val, exc_tb)
+        self.__node.__exit__(exc_type, exc_val, exc_tb)
         self.release()
 
         return False
@@ -114,12 +116,6 @@ class NodeWorker(RepeatTimer, Generic[IN, OUT]):
         input_item = self.get()
         output_item = self.process(input_item)
         self.put(output_item)
-
-    def before(self):
-        self.__node.before()
-
-    def after(self):
-        self.__node.after()
 
     def start(self) -> None:
         if self.upstream is None and self.downstream is None:
