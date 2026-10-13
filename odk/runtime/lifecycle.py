@@ -10,6 +10,7 @@ __all__ = [
 
 P = ParamSpec('P')
 R = TypeVar('R')
+Self = TypeVar('Self', bound='Lifecycle')
 
 
 class Hook(Generic[P, R]):
@@ -91,7 +92,12 @@ class Lifecycle:
         """
         return not self.__event.wait(timeout)
 
-    def add_enter_hook(self, fn: Callable[P, R], *args: P.args, **kwargs: P.kwargs):
+    def add_enter_hook(
+        self: Self,
+        fn: Callable[P, R],
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ):
         """Register a callback to run when entering the timer context.
 
         The hook is executed in registration order during :meth:`__enter__`, before
@@ -103,8 +109,14 @@ class Lifecycle:
             **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
         """
         self.__enter_hooks.append(Hook(fn, *args, **kwargs))
+        return self
 
-    def add_exit_hook(self, fn: Callable[P, R], *args: P.args, **kwargs: P.kwargs):
+    def add_exit_hook(
+        self: Self,
+        fn: Callable[P, R],
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ):
         """Register a callback to run when leaving the timer context.
 
         The hook is executed in registration order during :meth:`__exit__`, after
@@ -116,9 +128,10 @@ class Lifecycle:
             **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
         """
         self.__exit_hooks.append(Hook(fn, *args, **kwargs))
+        return self
 
     def add_before_routine_hook(
-        self,
+        self: Self,
         fn: Callable[P, R],
         *args: P.args,
         **kwargs: P.kwargs,
@@ -134,9 +147,10 @@ class Lifecycle:
             **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
         """
         self.__before_routine_hooks.append(Hook(fn, *args, **kwargs))
+        return self
 
     def add_after_routine_hook(
-        self,
+        self: Self,
         fn: Callable[P, R],
         *args: P.args,
         **kwargs: P.kwargs,
@@ -152,6 +166,7 @@ class Lifecycle:
             **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
         """
         self.__after_routine_hooks.append(Hook(fn, *args, **kwargs))
+        return self
 
     def execute_hooks(self, hooks: Iterable[Hook]):
         """Run each hook in iteration order.
