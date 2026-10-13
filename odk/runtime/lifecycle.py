@@ -49,39 +49,40 @@ class Lifecycle:
         return False
 
     def routine(self):
-        """Perform one unit of work for an active timer tick.
+        """Perform one unit of work while the lifecycle is active.
 
-        Override in subclasses to provide the work that runs after before-tick
-        hooks and before after-tick hooks on each timer iteration.
+        Override this method to implement the work for one iteration. It runs
+        after before-routine hooks and before after-routine hooks while the
+        lifecycle remains active.
         """
 
     def before(self):
-        """Hook called once before the timer loop starts.
+        """Perform setup before routine processing begins.
 
-        Override in subclasses to perform setup work after enter hooks are
-        executed and before the first :meth:`routine` call.
+        Override this method to initialize resources after enter hooks run and
+        before the first :meth:`routine` call.
         """
 
     def after(self):
-        """Hook called once after the timer loop stops.
+        """Perform cleanup after routine processing ends.
 
-        Override in subclasses to perform cleanup work after :meth:`close` is
-        triggered and before exit hooks are executed.
+        Override this method to release resources after :meth:`close` is
+        called and before exit hooks run.
         """
 
     def close(self):
-        """Request the timer loop to stop.
+        """Request that the lifecycle stop.
 
-        Sets the internal stop event so :meth:`is_active` returns ``False``
-        and the worker loop exits on the next check.
+        Sets the internal stop event so :meth:`is_active` returns ``False``.
+        The active routine loop ends on its next activity check.
         """
         self.__event.set()
 
     def is_active(self, timeout: float | None = 0) -> bool:
-        """Check whether the timer is still active.
+        """Check whether the lifecycle remains active.
 
-        Waits up to ``timeout`` seconds for the internal stop event. Returns ``True``
-        if no stop signal is received, ``False`` otherwise.
+        Waits up to ``timeout`` seconds for the internal stop event. Returns
+        ``True`` when no stop signal is received, otherwise ``False``.
 
         Args:
             timeout (float | None, optional): Seconds to wait for a stop signal. If
@@ -97,16 +98,19 @@ class Lifecycle:
         fn: Callable[P, R],
         *args: P.args,
         **kwargs: P.kwargs,
-    ):
-        """Register a callback to run when entering the timer context.
+    ) -> Self:
+        """Register a callback to run when the lifecycle is entered.
 
-        The hook is executed in registration order during :meth:`__enter__`, before
-        :meth:`before` is called.
+        The callback runs in registration order before :meth:`before`. The
+        returned instance allows chained hook registration.
 
         Args:
             fn (Callable[P, R]): Callback to execute on context entry.
             *args (P.args): Positional arguments passed to ``fn``.
             **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
+
+        Returns:
+            Self: self.
         """
         self.__enter_hooks.append(Hook(fn, *args, **kwargs))
         return self
@@ -116,16 +120,19 @@ class Lifecycle:
         fn: Callable[P, R],
         *args: P.args,
         **kwargs: P.kwargs,
-    ):
-        """Register a callback to run when leaving the timer context.
+    ) -> Self:
+        """Register a callback to run when the lifecycle is exited.
 
-        The hook is executed in registration order during :meth:`__exit__`, after
-        :meth:`close` and :meth:`after` are called.
+        The callback runs in registration order after :meth:`after`. The
+        returned instance allows chained hook registration.
 
         Args:
             fn (Callable[P, R]): Callback to execute on context exit.
             *args (P.args): Positional arguments passed to ``fn``.
             **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
+
+        Returns:
+            Self: self.
         """
         self.__exit_hooks.append(Hook(fn, *args, **kwargs))
         return self
@@ -135,16 +142,20 @@ class Lifecycle:
         fn: Callable[P, R],
         *args: P.args,
         **kwargs: P.kwargs,
-    ):
-        """Register a callback to run before each timer tick.
+    ) -> Self:
+        """Register a callback to run before each routine invocation.
 
-        The hook is executed in registration order immediately before
-        :meth:`routine` on every active loop iteration.
+        Callbacks run in registration order immediately before :meth:`routine`
+        during each active iteration. The returned instance allows chained hook
+        registration.
 
         Args:
-            fn (Callable[P, R]): Callback to execute before each timer tick.
+            fn (Callable[P, R]): Callback to execute before each routine call.
             *args (P.args): Positional arguments passed to ``fn``.
             **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
+
+        Returns:
+            Self: self.
         """
         self.__before_routine_hooks.append(Hook(fn, *args, **kwargs))
         return self
@@ -154,16 +165,20 @@ class Lifecycle:
         fn: Callable[P, R],
         *args: P.args,
         **kwargs: P.kwargs,
-    ):
-        """Register a callback to run after each timer tick.
+    ) -> Self:
+        """Register a callback to run after each routine invocation.
 
-        The hook is executed in registration order immediately after
-        :meth:`routine` on every active loop iteration.
+        Callbacks run in registration order immediately after :meth:`routine`
+        during each active iteration. The returned instance allows chained hook
+        registration.
 
         Args:
-            fn (Callable[P, R]): Callback to execute after each timer tick.
+            fn (Callable[P, R]): Callback to execute after each routine call.
             *args (P.args): Positional arguments passed to ``fn``.
             **kwargs (P.kwargs): Keyword arguments passed to ``fn``.
+
+        Returns:
+            Self: self.
         """
         self.__after_routine_hooks.append(Hook(fn, *args, **kwargs))
         return self
@@ -178,13 +193,29 @@ class Lifecycle:
             hook.run()
 
     def execute_enter_hooks(self):
+        """Run registered entry hooks in registration order.
+
+        Called when entering the lifecycle, before :meth:`before`.
+        """
         self.execute_hooks(self.__enter_hooks)
 
     def execute_exit_hooks(self):
+        """Run registered exit hooks in registration order.
+
+        Called when exiting the lifecycle, after :meth:`after`.
+        """
         self.execute_hooks(self.__exit_hooks)
 
     def execute_before_routine_hooks(self):
+        """Run registered before-routine hooks in registration order.
+
+        Called immediately before :meth:`routine` on each active iteration.
+        """
         self.execute_hooks(self.__before_routine_hooks)
 
     def execute_after_routine_hooks(self):
+        """Run registered after-routine hooks in registration order.
+
+        Called immediately after :meth:`routine` on each active iteration.
+        """
         self.execute_hooks(self.__after_routine_hooks)
