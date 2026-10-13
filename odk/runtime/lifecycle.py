@@ -61,10 +61,10 @@ class Lifecycle:
         """
 
     def after(self):
-        """Perform cleanup after routine processing ends.
+        """Perform cleanup when the lifecycle is exited.
 
-        Override this method to release resources after :meth:`close` is
-        called and before exit hooks run.
+        Override this method to release resources after routine processing and
+        before exit hooks run.
         """
 
     def add_enter_hook(
