@@ -17,6 +17,9 @@ OUT = TypeVar('OUT')
 
 
 class NodeProto(Lifecycle, Generic[IN, OUT], ABC):
+    def __init__(self):
+        super().__init__()
+
     @abstractmethod
     def process(self, item: IN | None) -> OUT | None: ...
 
