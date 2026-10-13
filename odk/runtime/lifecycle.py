@@ -1,5 +1,4 @@
 from collections.abc import Callable, Iterable
-from threading import Event
 from typing import Generic, ParamSpec, TypeVar
 
 __all__ = [
@@ -25,13 +24,12 @@ class Hook(Generic[P, R]):
 
 class Lifecycle:
     def __init__(self):
-        self.__event = Event()
         self.__enter_hooks = list[Hook]()
         self.__exit_hooks = list[Hook]()
         self.__before_routine_hooks = list[Hook]()
         self.__after_routine_hooks = list[Hook]()
 
-    def __enter__(self):
+    def __enter__(self: Self) -> Self:
         self.execute_enter_hooks()
         self.__enter_hooks.clear()
         self.before()
@@ -39,7 +37,6 @@ class Lifecycle:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
-        self.close()
         self.after()
         self.execute_exit_hooks()
         self.__exit_hooks.clear()
@@ -69,29 +66,6 @@ class Lifecycle:
         Override this method to release resources after :meth:`close` is
         called and before exit hooks run.
         """
-
-    def close(self):
-        """Request that the lifecycle stop.
-
-        Sets the internal stop event so :meth:`is_active` returns ``False``.
-        The active routine loop ends on its next activity check.
-        """
-        self.__event.set()
-
-    def is_active(self, timeout: float | None = 0) -> bool:
-        """Check whether the lifecycle remains active.
-
-        Waits up to ``timeout`` seconds for the internal stop event. Returns
-        ``True`` when no stop signal is received, otherwise ``False``.
-
-        Args:
-            timeout (float | None, optional): Seconds to wait for a stop signal. If
-                ``None``, blocks indefinitely until stopped. Defaults to 0.
-
-        Returns:
-            bool: ``True`` if still running, ``False`` if stopped.
-        """
-        return not self.__event.wait(timeout)
 
     def add_enter_hook(
         self: Self,

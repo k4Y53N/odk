@@ -1,4 +1,4 @@
-from threading import Lock, Thread
+from threading import Event, Lock, Thread
 
 from .lifecycle import Lifecycle
 
@@ -11,6 +11,14 @@ class RepeatTimer(Lifecycle, Thread):
         Thread.__init__(self, *args, **kwargs)
         self.__interval = interval
         self.__lock = Lock()
+        self.__event = Event()
+
+    def __enter__(self):
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        return super().__exit__(exc_type, exc_val, exc_tb)
 
     @property
     def lock(self) -> Lock:
@@ -30,3 +38,26 @@ class RepeatTimer(Lifecycle, Thread):
                 return
 
             super().start()
+
+    def close(self):
+        """Request that the timer stop.
+
+        Sets the internal stop event so :meth:`is_active` returns ``False``.
+        The active routine loop ends on its next activity check.
+        """
+        self.__event.set()
+
+    def is_active(self, timeout: float | None = 0) -> bool:
+        """Check whether the timer remains active.
+
+        Waits up to ``timeout`` seconds for the internal stop event. Returns
+        ``True`` when no stop signal is received, otherwise ``False``.
+
+        Args:
+            timeout (float | None, optional): Seconds to wait for a stop signal. If
+                ``None``, blocks indefinitely until stopped. Defaults to 0.
+
+        Returns:
+            bool: ``True`` if still running, ``False`` if stopped.
+        """
+        return not self.__event.wait(timeout)
