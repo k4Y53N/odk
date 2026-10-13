@@ -2,7 +2,7 @@ from collections.abc import Callable
 from typing import Concatenate, ParamSpec, TypeVar
 
 from .lifecycle import Hook
-from .node import Node
+from .node import NodeWorker
 
 __all__ = [
     'Flow',
@@ -14,14 +14,14 @@ R = TypeVar('R')
 
 
 class Flow:
-    def __init__(self, *nodes: Node):
+    def __init__(self, *nodes: NodeWorker):
         """Create a flow by chaining nodes together in sequence.
 
         Each node is linked to the next using the pipe operator, forming a processing
             pipeline.
 
         Args:
-            *nodes: Nodes to chain together in order.
+            *nodes: ThreadNodes to chain together in order.
         """
         prev = None
 
@@ -38,7 +38,7 @@ class Flow:
     def call(
         self,
         skip_standalone: bool,
-        method: Callable[Concatenate[Node, P], R],
+        method: Callable[Concatenate[NodeWorker, P], R],
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> bool:
@@ -46,7 +46,7 @@ class Flow:
 
         Args:
             skip_standalone (bool): If True, skip nodes marked as standalone.
-            method (Callable[Concatenate[Node, P], R]): The node method to call on each
+            method (Callable[Concatenate[ThreadNode, P], R]): The node method to call on each
                 node.
             *args (P.args): Positional arguments to pass to the method.
             **kwargs (P.kwargs): Keyword arguments to pass to the method.
@@ -72,7 +72,7 @@ class Flow:
             skip_standalone (bool, optional): If True, skip nodes marked as standalone.
                 Defaults to True.
         """
-        self.call(skip_standalone, Node.start)
+        self.call(skip_standalone, NodeWorker.start)
 
     def close(self, skip_standalone: bool = True):
         """Close all nodes in the flow.
@@ -81,7 +81,7 @@ class Flow:
             skip_standalone (bool, optional): If True, skip nodes marked as standalone.
                 Defaults to True.
         """
-        self.call(skip_standalone, Node.close)
+        self.call(skip_standalone, NodeWorker.close)
 
     def join(self, timeout: float | None = None, skip_standalone: bool = True):
         """Wait for all nodes in the flow to finish.
@@ -92,7 +92,7 @@ class Flow:
             skip_standalone (bool, optional): If True, skip nodes marked as standalone.
                 Defaults to True.
         """
-        self.call(skip_standalone, Node.join, timeout)
+        self.call(skip_standalone, NodeWorker.join, timeout)
 
     def is_alive(self, skip_standalone: bool = True) -> bool:
         """Check whether all nodes in the flow are alive.
@@ -104,7 +104,7 @@ class Flow:
         Returns:
             bool: True if all checked nodes are alive.
         """
-        return self.call(skip_standalone, Node.is_alive)
+        return self.call(skip_standalone, NodeWorker.is_alive)
 
     def is_active(
         self,
@@ -122,7 +122,7 @@ class Flow:
         Returns:
             bool: True if all checked nodes are active.
         """
-        return self.call(skip_standalone, Node.is_active, timeout)
+        return self.call(skip_standalone, NodeWorker.is_active, timeout)
 
     def add_enter_hook(self, hook: Hook, skip_standalone: bool = True):
         """Register an enter hook on each node in the flow.
@@ -134,7 +134,7 @@ class Flow:
         """
         self.call(
             skip_standalone,
-            Node.add_enter_hook,
+            NodeWorker.add_enter_hook,
             hook.fn,
             *hook.args,
             **hook.kwargs,
@@ -150,7 +150,7 @@ class Flow:
         """
         self.call(
             skip_standalone,
-            Node.add_exit_hook,
+            NodeWorker.add_exit_hook,
             hook.fn,
             *hook.args,
             **hook.kwargs,
@@ -166,7 +166,7 @@ class Flow:
         """
         self.call(
             skip_standalone,
-            Node.add_before_routine_hook,
+            NodeWorker.add_before_routine_hook,
             hook.fn,
             *hook.args,
             **hook.kwargs,
@@ -182,7 +182,7 @@ class Flow:
         """
         self.call(
             skip_standalone,
-            Node.add_after_routine_hook,
+            NodeWorker.add_after_routine_hook,
             hook.fn,
             *hook.args,
             **hook.kwargs,
