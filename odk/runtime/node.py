@@ -1,6 +1,7 @@
 import logging as log
 from abc import ABC, abstractmethod
 from queue import Empty, Full, Queue
+from threading import Event
 from typing import Any, Generic, TypeVar
 
 from .lifecycle import Lifecycle
@@ -19,9 +20,19 @@ OUT = TypeVar('OUT')
 class NodeProto(Lifecycle, Generic[IN, OUT], ABC):
     def __init__(self):
         super().__init__()
+        self.__event = Event()
 
     @abstractmethod
     def process(self, item: IN | None) -> OUT | None: ...
+
+    def bind_event(self, event: Event):
+        self.__event = event
+
+    def close(self):
+        self.__event.set()
+
+    def is_active(self, timeout: float | None):
+        return not self.__event.wait(timeout)
 
 
 class NodeWorker(RepeatTimer, Generic[IN, OUT]):
