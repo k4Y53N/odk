@@ -1,12 +1,15 @@
 import logging as log
 from abc import ABC, abstractmethod
 from queue import Empty, Full, Queue
+from threading import Event
 from typing import Any, Generic, TypeVar
 
+from .lifecycle import Lifecycle
 from .repeat_timer import RepeatTimer
 
 __all__ = [
     'Node',
+    'NodeWorker',
 ]
 
 
@@ -14,55 +17,82 @@ IN = TypeVar('IN')
 OUT = TypeVar('OUT')
 
 
-class Node(RepeatTimer, Generic[IN, OUT], ABC):
+class BaseNode(Lifecycle, Generic[IN, OUT], ABC):
+    def __init__(self):
+        super().__init__()
+        self.__event = Event()
+
+    @abstractmethod
+    def process(self, item: IN | None) -> OUT | None:
+        """Process one input item.
+
+        Args:
+            item (IN | None): Input from the upstream node, or ``None`` when no
+                input item is available.
+
+        Returns:
+            OUT | None: The item to send downstream, or ``None`` to emit nothing.
+        """
+
+    def bind_event(self, event: Event):
+        """Bind the runtime stop event used by :meth:`close` and :meth:`is_active`.
+
+        Args:
+            event (Event): Stop event owned by the runtime that executes this node.
+        """
+        self.__event = event
+
+    def close(self):
+        """Set the node to inactive."""
+        self.__event.set()
+
+    def is_active(self, timeout: float | None):
+        """Check whether the node is active.
+
+        Args:
+            timeout (float | None): Seconds to wait for the node to close. ``None``
+                waits indefinitely.
+
+        Returns:
+            bool: ``True`` if the node remains active, otherwise ``False``.
+        """
+        return not self.__event.wait(timeout)
+
+
+class NodeWorker(RepeatTimer, Generic[IN, OUT]):
     def __init__(
         self,
+        node: 'BaseNode[IN, OUT]',
         buff_size: int = 3,
         timeout: float | None = 1,
-        retry: int | float = 0,
+        retry: int = 0,
         standalone: bool = False,
         name: str = 'NODE',
         interval: int = 0,
         *args,
         **kwargs,
     ):
-        """Initialize a processing node with queue and retry settings.
-
-        Args:
-            buff_size (int, optional): Queue capacity used when creating
-                upstream/downstream buffers. Defaults to 3.
-            timeout (float | None, optional): Timeout in seconds for queue
-                get/put operations. ``None`` means block indefinitely.
-                Defaults to 1.
-            retry (int | float, optional): Maximum consecutive underflow or
-                overflow attempts before stopping. Defaults to 0.
-            standalone (bool, optional): If ``True``, do not stop when
-                upstream/downstream stopped. Defaults to False.
-            name (str, optional): Display name used in logs and ``__str__``.
-                Defaults to 'NODE'.
-            interval (int, optional): Delay in seconds between routine ticks.
-                Passed to :class:`RepeatTimer`. Defaults to 0.
-            *args: Positional arguments forwarded to :class:`RepeatTimer`.
-            **kwargs: Keyword arguments forwarded to :class:`RepeatTimer`.
-        """
         super().__init__(interval, *args, **kwargs)
         self.buff_size = buff_size
         self.name = name
         self.upstream: Queue[IN] | None = None
         self.downstream: Queue[OUT] | None = None
-        self.__logger = log.getLogger(self.__class__.__name__)
-        self.__upstream_nodes = list['Node[Any, IN]']()
-        self.__downstream_nodes = list['Node[OUT, Any]']()
+        self.__node = node
+        self.__logger = log.getLogger(self.__node.__class__.__name__)
+        self.__upstream_nodes = list['NodeWorker[Any, IN]']()
+        self.__downstream_nodes = list['NodeWorker[OUT, Any]']()
         self.__timeout = timeout
         self.__retry = retry
         self.__standalone = standalone
         self.__underflow: int = 0
         self.__overflow: int = 0
 
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__}({self.name})'
+        node.bind_event(self.event)
 
-    def __or__(self, other: 'Node[OUT, Any]') -> 'Node[OUT, Any]':
+    def __str__(self) -> str:
+        return f'{self.__node.__class__.__name__}({self.name})'
+
+    def __or__(self, other: 'NodeWorker[OUT, Any]') -> 'NodeWorker[OUT, Any]':
         if self.downstream is None and other.upstream is None:
             # None | None
             stream = Queue[OUT](max(self.buff_size, other.buff_size))
@@ -90,27 +120,17 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
         return self
 
     def __enter__(self):
-        return super().__enter__()
+        super().__enter__()
+        self.__node.__enter__()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        super().__exit__(exc_type, exc_val, exc_tb)
-        self.release()
+        return self
 
-        return False
-
-    @abstractmethod
-    def process(self, item: IN | None) -> OUT | None:
-        """Transform one input item into an output item.
-
-        Subclasses must implement this method with the node-specific
-        processing logic.
-
-        Args:
-            item (IN | None): Input item from upstream, or ``None``.
-
-        Returns:
-            OUT | None: Processed output item, or ``None`` to skip enqueueing.
-        """
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+        try:
+            return self.__node.__exit__(exc_type, exc_val, exc_tb)
+        finally:
+            self.release()
+            super().__exit__(exc_type, exc_val, exc_tb)
 
     @property
     def standalone(self) -> bool:
@@ -128,14 +148,15 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
     def logger(self) -> log.Logger:
         return self.__logger
 
+    def process(self, item: IN | None) -> OUT | None:
+        return self.__node.process(item)
+
     def routine(self):
         input_item = self.get()
+        self.__node.execute_before_routine_hooks()
         output_item = self.process(input_item)
+        self.__node.execute_after_routine_hooks()
         self.put(output_item)
-
-    def before(self): ...
-
-    def after(self): ...
 
     def start(self) -> None:
         if self.upstream is None and self.downstream is None:
@@ -256,7 +277,7 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
         self.upstream = None
         self.downstream = None
 
-    def append_upstream(self, node: 'Node[Any, IN]') -> bool:
+    def append_upstream(self, node: 'NodeWorker[Any, IN]') -> bool:
         """Register an upstream node.
 
         Args:
@@ -272,7 +293,7 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
             self.__upstream_nodes.append(node)
             return True
 
-    def append_downstream(self, node: 'Node[OUT, Any]') -> bool:
+    def append_downstream(self, node: 'NodeWorker[OUT, Any]') -> bool:
         """Register a downstream node.
 
         Args:
@@ -288,7 +309,7 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
             self.__downstream_nodes.append(node)
             return True
 
-    def remove_upstream(self, node: 'Node[Any, IN]') -> bool:
+    def remove_upstream(self, node: 'NodeWorker[Any, IN]') -> bool:
         """Remove an upstream node.
 
         Args:
@@ -304,7 +325,7 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
             except ValueError:
                 return False
 
-    def remove_downstream(self, node: 'Node[OUT, Any]') -> bool:
+    def remove_downstream(self, node: 'NodeWorker[OUT, Any]') -> bool:
         """Remove a downstream node.
 
         Args:
@@ -329,3 +350,41 @@ class Node(RepeatTimer, Generic[IN, OUT], ABC):
         """Create the downstream queue if it is not already set."""
         if self.downstream is None:
             self.downstream = Queue[OUT](self.buff_size)
+
+
+class Node(BaseNode[IN, OUT]):
+    def to_worker(
+        self,
+        buff_size: int = 3,
+        timeout: float | None = 1,
+        retry: int = 0,
+        standalone: bool = False,
+        name: str = 'NODE',
+        interval: int = 0,
+    ) -> NodeWorker[IN, OUT]:
+        """Create a worker that executes this node.
+
+        Args:
+            buff_size (int, optional): Maximum number of queued items. Defaults to 3.
+            timeout (float | None, optional): Queue operation timeout in seconds.
+                Defaults to 1.
+            retry (int, optional): Failed queue operations allowed before stopping.
+                Defaults to 0.
+            standalone (bool, optional): Whether to ignore linked node shutdown.
+                Defaults to False.
+            name (str, optional): Worker name. Defaults to 'NODE'.
+            interval (int, optional): Delay between processing iterations in seconds.
+                Defaults to 0.
+
+        Returns:
+            NodeWorker[IN, OUT]: Worker configured to execute this node.
+        """
+        return NodeWorker[IN, OUT](
+            node=self,
+            buff_size=buff_size,
+            timeout=timeout,
+            retry=retry,
+            standalone=standalone,
+            name=name,
+            interval=interval,
+        )
