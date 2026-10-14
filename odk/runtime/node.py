@@ -63,6 +63,8 @@ class NodeWorker(RepeatTimer, Generic[IN, OUT]):
         self.__underflow: int = 0
         self.__overflow: int = 0
 
+        node.bind_event(self.event)
+
     def __str__(self) -> str:
         return f'{self.__node.__class__.__name__}({self.name})'
 

@@ -25,15 +25,18 @@ class Chain(RepeatTimer, Generic[IN, OUT]):
             raise ValueError('Chain requires at least one node.')
 
         super().__init__(interval, *args, **kwargs)
-        self.nodes = nodes
+        self.__nodes = nodes
         self.__node_contexts: ExitStack | None = None
+
+        for node in nodes:
+            node.bind_event(self.event)
 
     def __enter__(self):
         super().__enter__()
         self.__node_contexts = ExitStack()
 
         try:
-            for node in self.nodes:
+            for node in self.__nodes:
                 self.__node_contexts.enter_context(node)
         except BaseException:
             self.__node_contexts.close()
@@ -54,7 +57,7 @@ class Chain(RepeatTimer, Generic[IN, OUT]):
         self.process(None)
 
     def process(self, item: IN | None) -> OUT | None:
-        for node in self.nodes:
+        for node in self.__nodes:
             node.execute_before_routine_hooks()
             item = node.process(item)
             node.execute_after_routine_hooks()
