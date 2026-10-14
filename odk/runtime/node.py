@@ -102,10 +102,11 @@ class NodeWorker(RepeatTimer, Generic[IN, OUT]):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
-        self.__node.__exit__(exc_type, exc_val, exc_tb)
-        self.release()
-
-        return super().__exit__(exc_type, exc_val, exc_tb)
+        try:
+            return self.__node.__exit__(exc_type, exc_val, exc_tb)
+        finally:
+            self.release()
+            super().__exit__(exc_type, exc_val, exc_tb)
 
     @property
     def standalone(self) -> bool:

@@ -47,11 +47,13 @@ class Chain(RepeatTimer, Generic[IN, OUT]):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+        suppressed = False
+
         if self.__node_contexts is not None:
-            self.__node_contexts.close()
+            suppressed = self.__node_contexts.__exit__(exc_type, exc_val, exc_tb)
             self.__node_contexts = None
 
-        return super().__exit__(exc_type, exc_val, exc_tb)
+        return super().__exit__(exc_type, exc_val, exc_tb) or suppressed
 
     def routine(self):
         self.process(None)
