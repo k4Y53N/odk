@@ -46,12 +46,12 @@ class Chain(RepeatTimer, Generic[IN, OUT]):
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        super().__exit__(exc_type, exc_val, exc_tb)
-
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         if self.__node_contexts is not None:
             self.__node_contexts.close()
             self.__node_contexts = None
+
+        return super().__exit__(exc_type, exc_val, exc_tb)
 
     def routine(self):
         self.process(None)

@@ -96,15 +96,16 @@ class NodeWorker(RepeatTimer, Generic[IN, OUT]):
         return self
 
     def __enter__(self):
+        super().__enter__()
         self.__node.__enter__()
-        return super().__enter__()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        super().__exit__(exc_type, exc_val, exc_tb)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         self.__node.__exit__(exc_type, exc_val, exc_tb)
         self.release()
 
-        return False
+        return super().__exit__(exc_type, exc_val, exc_tb)
 
     @property
     def standalone(self) -> bool:
@@ -127,7 +128,9 @@ class NodeWorker(RepeatTimer, Generic[IN, OUT]):
 
     def routine(self):
         input_item = self.get()
+        self.__node.execute_before_routine_hooks()
         output_item = self.process(input_item)
+        self.__node.execute_after_routine_hooks()
         self.put(output_item)
 
     def start(self) -> None:
