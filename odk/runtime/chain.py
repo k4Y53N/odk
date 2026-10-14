@@ -21,6 +21,16 @@ class Chain(RepeatTimer, Generic[IN, OUT]):
         *args,
         **kwargs,
     ):
+        """Create a chain that processes items through nodes in order.
+
+        Args:
+            nodes (list[Node[Any, Any]]): Nodes to execute in sequence.
+            interval (float, optional): Delay between processing iterations in seconds.
+                Defaults to 0.
+
+        Raises:
+            ValueError: If ``nodes`` is empty.
+        """
         if not nodes:
             raise ValueError('Chain requires at least one node.')
 
@@ -59,6 +69,14 @@ class Chain(RepeatTimer, Generic[IN, OUT]):
         self.process(None)
 
     def process(self, item: IN | None) -> OUT | None:
+        """Process an item through each node in sequence.
+
+        Args:
+            item (IN | None): Initial item passed to the first node.
+
+        Returns:
+            OUT | None: Output returned by the final node.
+        """
         for node in self.__nodes:
             node.execute_before_routine_hooks()
             item = node.process(item)
