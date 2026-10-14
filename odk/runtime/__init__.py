@@ -1,7 +1,7 @@
 from .chain import Chain
 from .flow import Flow
 from .lifecycle import Hook
-from .node import Node
+from .node import Node, NodeWorker
 from .repeat_timer import RepeatTimer
 
 __all__ = [
@@ -9,5 +9,6 @@ __all__ = [
     'Flow',
     'Hook',
     'Node',
+    'NodeWorker',
     'RepeatTimer',
 ]
