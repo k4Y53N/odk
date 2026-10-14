@@ -25,6 +25,10 @@ class RepeatTimer(Lifecycle, Thread):
         """Thread lock used to protect timer operations."""
         return self.__lock
 
+    @property
+    def event(self) -> Event:
+        return self.__event
+
     def run(self):
         with self:
             while self.is_active(self.__interval):
