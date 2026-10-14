@@ -23,15 +23,39 @@ class NodeProto(Lifecycle, Generic[IN, OUT], ABC):
         self.__event = Event()
 
     @abstractmethod
-    def process(self, item: IN | None) -> OUT | None: ...
+    def process(self, item: IN | None) -> OUT | None:
+        """Process one input item.
+
+        Args:
+            item (IN | None): Input from the upstream node, or ``None`` when no
+                input item is available.
+
+        Returns:
+            OUT | None: The item to send downstream, or ``None`` to emit nothing.
+        """
 
     def bind_event(self, event: Event):
+        """Bind the runtime stop event used by :meth:`close` and :meth:`is_active`.
+
+        Args:
+            event (Event): Stop event owned by the runtime that executes this node.
+        """
         self.__event = event
 
     def close(self):
+        """Set the node to inactive."""
         self.__event.set()
 
     def is_active(self, timeout: float | None):
+        """Check whether the node is active.
+
+        Args:
+            timeout (float | None): Seconds to wait for the node to close. ``None``
+                waits indefinitely.
+
+        Returns:
+            bool: ``True`` if the node remains active, otherwise ``False``.
+        """
         return not self.__event.wait(timeout)
 
 
@@ -344,6 +368,23 @@ class Node(NodeProto[IN, OUT], ABC):
         name: str = 'NODE',
         interval: int = 0,
     ) -> NodeWorker[IN, OUT]:
+        """Create a worker that executes this node.
+
+        Args:
+            buff_size (int, optional): Maximum number of queued items. Defaults to 3.
+            timeout (float | None, optional): Queue operation timeout in seconds.
+                Defaults to 1.
+            retry (int, optional): Failed queue operations allowed before stopping.
+                Defaults to 0.
+            standalone (bool, optional): Whether to ignore linked node shutdown.
+                Defaults to False.
+            name (str, optional): Worker name. Defaults to 'NODE'.
+            interval (int, optional): Delay between processing iterations in seconds.
+                Defaults to 0.
+
+        Returns:
+            NodeWorker[IN, OUT]: Worker configured to execute this node.
+        """
         return NodeWorker[IN, OUT](
             node=self,
             buff_size=buff_size,
