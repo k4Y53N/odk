@@ -17,7 +17,7 @@ IN = TypeVar('IN')
 OUT = TypeVar('OUT')
 
 
-class NodeProto(Lifecycle, Generic[IN, OUT], ABC):
+class BaseNode(Lifecycle, Generic[IN, OUT], ABC):
     def __init__(self):
         super().__init__()
         self.__event = Event()
@@ -62,7 +62,7 @@ class NodeProto(Lifecycle, Generic[IN, OUT], ABC):
 class NodeWorker(RepeatTimer, Generic[IN, OUT]):
     def __init__(
         self,
-        node: 'NodeProto[IN, OUT]',
+        node: 'BaseNode[IN, OUT]',
         buff_size: int = 3,
         timeout: float | None = 1,
         retry: int = 0,
@@ -352,13 +352,7 @@ class NodeWorker(RepeatTimer, Generic[IN, OUT]):
             self.downstream = Queue[OUT](self.buff_size)
 
 
-class Node(NodeProto[IN, OUT], ABC):
-    def __init__(self):
-        super().__init__()
-
-    @abstractmethod
-    def process(self, item: IN | None) -> OUT | None: ...
-
+class Node(BaseNode[IN, OUT]):
     def to_worker(
         self,
         buff_size: int = 3,
