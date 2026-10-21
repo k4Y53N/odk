@@ -218,7 +218,7 @@ class ObjectTrackResult:
         Returns:
             NDArray[np.float32]: 1-D array of bounding box widths.
         """
-        return np.clip(self.right - self.left, 0)
+        return np.clip(self.right - self.left, 0, None)
 
     @property
     def height(self) -> NDArray[np.float32]:
@@ -227,7 +227,7 @@ class ObjectTrackResult:
         Returns:
             NDArray[np.float32]: 1-D array of bounding box heights.
         """
-        return np.clip(self.bottom - self.top, 0)
+        return np.clip(self.bottom - self.top, 0, None)
 
     @property
     def area(self) -> NDArray[np.float32]:
